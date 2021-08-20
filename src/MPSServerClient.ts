@@ -1,4 +1,11 @@
 import {Client} from "rpc-websockets"
+import {
+    CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata,
+    GetModuleStatusAnswer, GetModuleStatusAnswerWithMetadata,
+    GetProjectInfoAnswer,
+    NodeReference,
+    StatusAnswer
+} from "./messages";
 
 export class MPSServerClient {
     url: string;
@@ -30,23 +37,23 @@ export class MPSServerClient {
     }
 
     async getProjetInfo() : Promise<string> {
-        const res = await this.client.call('GetProjectInfo', {}) as any;
+        const res = await this.client.call('GetProjectInfo', {}) as GetProjectInfoAnswer;
         return res.projectName;
     }
 
     async getStatus() : Promise<string> {
-        const res = await this.client.call('Status', {}) as any;
+        const res = await this.client.call('Status', {}) as StatusAnswer;
         return res.description;
     }
 
     async getModuleStatus() : Promise<GetModuleStatusAnswer> {
-        const res = await this.client.call('GetModulesStatus', {}) as GetModuleStatusAnswer;
-        return res;
+        const res = await this.client.call('GetModulesStatus', {}) as GetModuleStatusAnswerWithMetadata;
+        return {repoAvailable: res.repoAvailable, modules: res.modules} as GetModuleStatusAnswer;
     }
 
     async createIntentionsBlock(node: NodeReference) : Promise<CreateIntentionsBlockAnswer> {
-        const res = await this.client.call('CreateIntentionsBlock', {node}) as CreateIntentionsBlockAnswer;
-        return res;
+        const res = await this.client.call('CreateIntentionsBlock', {node}) as CreateIntentionsBlockAnswerWithMetadata;
+        return {blockUUID: res.blockUUID, intentions: res.intentions} as CreateIntentionsBlockAnswer;
     }
 
     // async deleteIntentionsBlock(blockUUID: string) : Promise<void> {
@@ -55,41 +62,41 @@ export class MPSServerClient {
     // }
 }
 
-interface GetModuleStatusAnswer {
-    repoAvailable: boolean;
-    modules: ModuleStatus[];
-}
-
-interface ModuleStatus {
-    name: string;
-    deployed: boolean;
-    canBeDeployed: boolean;
-    reloadable: boolean;
-    dependenciesNotFound: string[];
-    undeployableDependencies: string[];
-}
-
-interface CreateIntentionsBlockAnswer {
-    blockUUID: string;
-    intentions: Intention[];
-}
-
-interface NodeReference {
-    model: string;
-    id: NodeIDInfo;
-}
-
-interface Intention {
-    model: string;
-    id: NodeIDInfo;
-}
-
-type NodeIDInfo = { }
-
-interface RegularNodeIDInfo extends NodeIDInfo {
-    regularId: number;
-}
-
-interface ForeignNodeIDInfo extends NodeIDInfo {
-    foreignId: string;
-}
+// interface GetModuleStatusAnswer {
+//     repoAvailable: boolean;
+//     modules: ModuleStatus[];
+// }
+//
+// interface ModuleStatus {
+//     name: string;
+//     deployed: boolean;
+//     canBeDeployed: boolean;
+//     reloadable: boolean;
+//     dependenciesNotFound: string[];
+//     undeployableDependencies: string[];
+// }
+//
+// interface CreateIntentionsBlockAnswer {
+//     blockUUID: string;
+//     intentions: Intention[];
+// }
+//
+// interface NodeReference {
+//     model: string;
+//     id: NodeIDInfo;
+// }
+//
+// interface Intention {
+//     model: string;
+//     id: NodeIDInfo;
+// }
+//
+// type NodeIDInfo = { }
+//
+// interface RegularNodeIDInfo extends NodeIDInfo {
+//     regularId: number;
+// }
+//
+// interface ForeignNodeIDInfo extends NodeIDInfo {
+//     foreignId: string;
+// }
