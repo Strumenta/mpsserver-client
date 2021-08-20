@@ -70,10 +70,12 @@ export interface Intention {
   description: string
 }
 
-export interface DeleteIntentionsBlock {
+export interface DeleteIntentionsBlockWithMetadata {
   blockUUID: UUID
   type: string
 }
+
+export type DeleteIntentionsBlock = { }
 
 export interface GetIntentionsBlockWithMetadata {
   blockUUID: UUID
@@ -104,10 +106,15 @@ export interface Result {
   explanation: string
 }
 
-export interface ExecuteIntention {
+export interface ExecuteIntentionWithMetadata {
   blockUUID: UUID
   index: number
   type: string
+}
+
+export interface ExecuteIntention {
+  blockUUID: UUID
+  index: number
 }
 
 export interface MakeProjectWithMetadata {
@@ -137,51 +144,6 @@ export interface MakeProjectAnswer {
 export interface LogMessage {
   kind: string
   text: string
-}
-
-export interface StatusWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type Status = { }
-
-export interface StatusAnswerWithMetadata {
-  description: string
-  requestId: string
-  type: string
-}
-
-export interface StatusAnswer {
-  description: string
-}
-
-export interface GetModulesStatusWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type GetModulesStatus = { }
-
-export interface GetModuleStatusAnswerWithMetadata {
-  repoAvailable: boolean
-  modules: ModuleStatus[]
-  requestId: string
-  type: string
-}
-
-export interface GetModuleStatusAnswer {
-  repoAvailable: boolean
-  modules: ModuleStatus[]
-}
-
-export interface ModuleStatus {
-  name: string
-  deployed: boolean
-  canBeDeployed: boolean
-  reloadable: boolean
-  dependenciesNotFound: string[]
-  undeployableDependencies: string[]
 }
 
 export interface OpenProjectWithMetadata {
@@ -230,6 +192,51 @@ export interface GetProjectInfoAnswer {
   projectName: string
 }
 
+export interface StatusWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type Status = { }
+
+export interface StatusAnswerWithMetadata {
+  description: string
+  requestId: string
+  type: string
+}
+
+export interface StatusAnswer {
+  description: string
+}
+
+export interface GetModulesStatusWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type GetModulesStatus = { }
+
+export interface GetModuleStatusAnswerWithMetadata {
+  repoAvailable: boolean
+  modules: ModuleStatus[]
+  requestId: string
+  type: string
+}
+
+export interface GetModuleStatusAnswer {
+  repoAvailable: boolean
+  modules: ModuleStatus[]
+}
+
+export interface ModuleStatus {
+  name: string
+  deployed: boolean
+  canBeDeployed: boolean
+  reloadable: boolean
+  dependenciesNotFound: string[]
+  undeployableDependencies: string[]
+}
+
 export interface RequestForPropertyChangeWithMetadata {
   node: NodeReference
   propertyName: string
@@ -251,8 +258,17 @@ export interface AnswerPropertyChangeWithMetadata {
 
 export type AnswerPropertyChange = { }
 
-export interface RegisterForChanges {
+export interface RegisterForChangesWithMetadata {
   modelName: string
+  type: string
+}
+
+export type RegisterForChanges = { }
+
+export interface PropertyChangeWithMetadata {
+  node: NodeReference
+  propertyName: string
+  propertyValue: any
   type: string
 }
 
@@ -260,6 +276,12 @@ export interface PropertyChange {
   node: NodeReference
   propertyName: string
   propertyValue: any
+}
+
+export interface ReferenceChangedWithMetadata {
+  node: NodeReference
+  referenceName: string
+  referenceValue: NodeReference
   type: string
 }
 
@@ -267,6 +289,13 @@ export interface ReferenceChanged {
   node: NodeReference
   referenceName: string
   referenceValue: NodeReference
+}
+
+export interface NodeAddedWithMetadata {
+  parentNodeId: NodeIDInfo
+  child: NodeInfoDetailed
+  index: number
+  relationName: string
   type: string
 }
 
@@ -275,7 +304,6 @@ export interface NodeAdded {
   child: NodeInfoDetailed
   index: number
   relationName: string
-  type: string
 }
 
 export interface NodeInfoDetailed {
@@ -304,12 +332,19 @@ export interface ModelInfo {
   readOnly: boolean
 }
 
-export interface NodeRemoved {
+export interface NodeRemovedWithMetadata {
   parentNodeId: NodeIDInfo
   child: NodeInfoDetailed
   index: number
   relationName: string
   type: string
+}
+
+export interface NodeRemoved {
+  parentNodeId: NodeIDInfo
+  child: NodeInfoDetailed
+  index: number
+  relationName: string
 }
 
 export interface GetInstancesOfConceptWithMetadata {
@@ -369,10 +404,15 @@ export interface GetRootsAnswer {
   nodes: NodeInfo[]
 }
 
-export interface InstantiateConcept {
+export interface InstantiateConceptWithMetadata {
   nodeToReplace: NodeReference
   conceptToInstantiate: string
   type: string
+}
+
+export interface InstantiateConcept {
+  nodeToReplace: NodeReference
+  conceptToInstantiate: string
 }
 
 export interface AddChildWithMetadata {
@@ -403,7 +443,7 @@ export interface AddChildAnswer {
   nodeCreated: NodeReference
 }
 
-export interface SetChild {
+export interface SetChildWithMetadata {
   container: NodeReference
   containmentName: string
   conceptToInstantiate: string
@@ -411,10 +451,19 @@ export interface SetChild {
   type: string
 }
 
-export interface DeleteNode {
+export interface SetChild {
+  container: NodeReference
+  containmentName: string
+  conceptToInstantiate: string
+  smartRefNodeId: RegularNodeIDInfo
+}
+
+export interface DeleteNodeWithMetadata {
   node: NodeReference
   type: string
 }
+
+export type DeleteNode = { }
 
 export interface DefaultInsertionWithMetadata {
   modelName: string
@@ -442,11 +491,17 @@ export interface AnswerDefaultInsertion {
   addedNodeID: NodeIDInfo
 }
 
-export interface InsertNextSibling {
+export interface InsertNextSiblingWithMetadata {
   modelName: string
   sibling: number
   conceptName: string
   type: string
+}
+
+export interface InsertNextSibling {
+  modelName: string
+  sibling: number
+  conceptName: string
 }
 
 export interface AskAlternativesWithMetadata {
@@ -538,10 +593,23 @@ export interface DirAlternative {
   nodeId: NodeIDInfo
 }
 
+export interface ReferenceChangeWithMetadata {
+  node: NodeReference
+  referenceName: string
+  referenceValue: NodeReference
+  type: string
+}
+
 export interface ReferenceChange {
   node: NodeReference
   referenceName: string
   referenceValue: NodeReference
+}
+
+export interface CreateRootWithMetadata {
+  modelName: string
+  conceptName: string
+  propertiesValues: {[key:string]:any}
   type: string
 }
 
@@ -549,13 +617,14 @@ export interface CreateRoot {
   modelName: string
   conceptName: string
   propertiesValues: {[key:string]:any}
-  type: string
 }
 
-export interface AskErrorsForNode {
+export interface AskErrorsForNodeWithMetadata {
   rootNode: NodeReference
   type: string
 }
+
+export type AskErrorsForNode = { }
 
 export interface GetNodeWithMetadata {
   node: NodeReference
@@ -577,10 +646,15 @@ export interface GetNodeAnswer {
   nodeData: NodeInfoDetailed
 }
 
-export interface ErrorsForModelReport {
+export interface ErrorsForModelReportWithMetadata {
   model: string
   issues: IssueDescription[]
   type: string
+}
+
+export interface ErrorsForModelReport {
+  model: string
+  issues: IssueDescription[]
 }
 
 export interface IssueDescription {
@@ -589,9 +663,14 @@ export interface IssueDescription {
   node: NodeIDInfo
 }
 
-export interface ErrorsForNodeReport {
+export interface ErrorsForNodeReportWithMetadata {
   rootNode: NodeReference
   issues: IssueDescription[]
   type: string
+}
+
+export interface ErrorsForNodeReport {
+  rootNode: NodeReference
+  issues: IssueDescription[]
 }
 

@@ -56,10 +56,9 @@ export class MPSServerClient {
         return {blockUUID: res.blockUUID, intentions: res.intentions} as CreateIntentionsBlockAnswer;
     }
 
-    // async deleteIntentionsBlock(blockUUID: string) : Promise<void> {
-    //     const res = await this.client.call('DeleteIntentionsBlock', {blockUUID}) as CreateIntentionsBlockAnswer;
-    //     return res;
-    // }
+    async deleteIntentionsBlock(blockUUID: string) : Promise<void> {
+        await this.client.notify('DeleteIntentionsBlock', {blockUUID});
+    }
 }
 
 // interface GetModuleStatusAnswer {

@@ -1,8 +1,9 @@
 import { parseString } from 'xml2js';
 import { promises as fsPromises } from 'fs';
 import {GetModuleStatusAnswer, GetModuleStatusAnswerWithMetadata} from "../messages";
+import {ParameterDeclarationStructure, Project, SourceFile} from "ts-morph";
 
-function convertType(xmlType: any) : string {
+function convertType(xmlType: any, sourceFile: SourceFile | null = null) : string {
     const xmlTypeName = xmlType.attrs.name;
     if (xmlTypeName === 'String') {
         return 'string';
@@ -10,17 +11,20 @@ function convertType(xmlType: any) : string {
     if (xmlTypeName === 'Boolean') {
         return 'boolean';
     }
-    if (xmlTypeName === 'Long' || xmlTypeName == 'Int') {
+    if (xmlTypeName === 'Long' || xmlTypeName === 'Int') {
         return 'number';
     }
     if (xmlTypeName === 'Object') {
         return 'any';
     }
     if (xmlTypeName === 'Map') {
-        return `{[key:${convertType(xmlType.type[0])}]:${convertType(xmlType.type[1])}}`;
+        return `{[key:${convertType(xmlType.type[0], sourceFile)}]:${convertType(xmlType.type[1], sourceFile)}}`;
     }
     if (xmlTypeName === 'List') {
-        return `${convertType(xmlType.type[0])}[]`;
+        return `${convertType(xmlType.type[0], sourceFile)}[]`;
+    }
+    if (sourceFile !== null) {
+        sourceFile.addImportDeclaration({namedImports: [xmlTypeName], moduleSpecifier: "./messages"});
     }
     return xmlTypeName;
 }
@@ -32,12 +36,12 @@ function codeForEmptyInterface(name: string) : string {
 function hasMetadata(message: any) : boolean {
     const fields = message.field || [];
     const fieldsNames = fields.map((el:any)=>el.attrs.name);
-    return fieldsNames.indexOf('requestId') !== -1 && fieldsNames.indexOf('type') !== -1;
+    return fieldsNames.indexOf('requestId') !== -1 || fieldsNames.indexOf('type') !== -1;
 }
 
 function hasOnlyMetadata(message: any) : boolean {
     const fields = message.field || [];
-    return hasMetadata(message) && fields.length == 2;
+    return hasMetadata(message) && fields.length === 2;
 }
 
 function generateInterface(name: string, fields: any[], fieldsNamesToSkip: string[] = []) : string {
@@ -63,22 +67,100 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     let gen = "";
     let clientGen = "";
     clientGen += "class Client {\n\n";
-    paths.forEach((path:string) => {
-        fsPromises.readFile(path, 'utf-8').then((xmlCode: string)=> {
+
+    const project = new Project();
+    const client = project.createSourceFile(clientGenerationPath, "", { overwrite: true });
+    project.emit(); // async
+
+    // import {BaseWSClient} from "../src/BaseWSClient";
+    client.addImportDeclaration({namedImports: ["BaseWSClient"], moduleSpecifier: "./BaseWSClient"})
+
+    const clientClass = client.addClass({
+       isAbstract: true,
+       name: "MPSServerClientGen",
+       extends: "BaseWSClient"
+    });
+
+    await Promise.all(paths.map(async (path:string) => {
+        return new Promise<void>(async (resolve, reject) => {
+            const xmlCode: string = await fsPromises.readFile(path, 'utf-8')
             parseString(xmlCode, {attrkey: 'attrs'}, (err, result: any) => {
                 if (err) {
                     console.error('There was an error when parsing: ', err);
                 } else {
 
                     result.wsprotocol.requestEndpoint.forEach((endpoint: any) => {
-                        console.log("endpoint", JSON.stringify(endpoint, null, 2));
-                        //const msgName = endpoint.attrs.messageType;
-                        //const methodName = uncapitalize(msgName);
-                        clientGen += `ciao`;
-                    //     clientGen += `async ${methodName}() : Promise<${msgName}> {
-                    //         const res = await this.client.call('${msgName}', {}) as ${msgName}Metadata;
-                    //     return {repoAvailable: res.repoAvailable, modules: res.modules} as ${msgName};
-                    // }`;
+                        // console.log("endpoint", JSON.stringify(endpoint, null, 2));
+                        const requestMsgName = endpoint.attrs.messageType;
+                        const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
+                        const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                        //console.log("requestMsg", requestMsg);
+                        const answers = endpoint.answer;
+                        if (answers.length !== 1) {
+                            throw Error("Answers found: " + answers);
+                        }
+                        const answerMsgName = answers[0].attrs.messageType;
+                        const answerMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === answerMsgName);
+                        const answerFields = answerMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                        const singleValue = answerFields.length === 1;
+                        const methodName = uncapitalize(requestMsgName);
+
+                        if (singleValue) {
+                            client.addImportDeclaration({
+                                namedImports: [requestMsgName, `${answerMsgName}WithMetadata`],
+                                moduleSpecifier: "./messages"
+                            });
+
+                            const singleValueType = convertType(answerFields[0].type[0], client);
+                            clientClass.addMethod({
+                                name: methodName,
+                                isAsync: true,
+                                returnType: `Promise<${singleValueType}>`,
+                                parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                                statements: [
+                                    `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
+                                    `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
+                                    `return res.${answerFields[0].attrs.name};`]
+                            })
+                        } else {
+                            client.addImportDeclaration({
+                                namedImports: [requestMsgName, answerMsgName, `${answerMsgName}WithMetadata`],
+                                moduleSpecifier: "./messages"
+                            });
+                            clientClass.addMethod({
+                                name: methodName,
+                                isAsync: true,
+                                returnType: `Promise<${answerMsgName}>`,
+                                parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                                statements: [
+                                    `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
+                                    `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
+                                    `return {${answerFields.map((f: any) => `${f.attrs.name}: res.${f.attrs.name}`).join(", ")}} as ${answerMsgName};`]
+                            })
+                        }
+                    });
+
+                    (result.wsprotocol.commandEndpoint || []).forEach((endpoint: any) => {
+                        // console.log("endpoint", JSON.stringify(endpoint, null, 2));
+                        const requestMsgName = endpoint.attrs.messageType;
+                        const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
+                        const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                        const methodName = uncapitalize(requestMsgName);
+
+
+                        client.addImportDeclaration({
+                            namedImports: [requestMsgName],
+                            moduleSpecifier: "./messages"
+                        });
+                        clientClass.addMethod({
+                            name: methodName,
+                            isAsync: true,
+                            returnType: `Promise<void>`,
+                            parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                            statements: [
+                                `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
+                                `await this.client.notify('${requestMsgName}', _params);`]
+                        })
                     });
 
                     result.wsprotocol.message.forEach((message: any) => {
@@ -105,14 +187,19 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                     })
 
                 }
-            })
+                //console.log("resolving for", path);
+                resolve();
+            });
         });
-    });
+    }));
 
     clientGen += "}\n";
-    console.log("clientGen", clientGen);
+    //console.log("printing");
+    //console.log("clientGen", clientGen);
     fsPromises.writeFile(messagesGenerationPath, gen, 'utf-8');
-    fsPromises.writeFile(clientGenerationPath, clientGen, 'utf-8');
+    //fsPromises.writeFile(clientGenerationPath, clientGen, 'utf-8');
+
+    await project.save();
 }
 
 const baseDir = "/Users/federico/repos/mpsserver/mpscode/solutions/com.strumenta.mpsserver.server/source_gen/com/strumenta/mpsserver/logic/";
@@ -122,4 +209,4 @@ processXmlFile([`${baseDir}/wsprotocol_Actions.xml`,
     `${baseDir}/wsprotocol_Make.xml`,
     `${baseDir}/wsprotocol_Nodes.xml`,
     `${baseDir}/wsprotocol_Projects.xml`,
-    `${baseDir}/wsprotocol_Status.xml`], "gen/messages.ts", "gen/client.ts");
+    `${baseDir}/wsprotocol_Status.xml`], "gen/messages.ts", "src/MPSServerClientGen.ts");
