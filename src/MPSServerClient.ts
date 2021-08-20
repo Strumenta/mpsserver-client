@@ -29,9 +29,67 @@ export class MPSServerClient {
         return p;
     }
 
-    async getProjetInfo() {
-        const res = await this.client.call('GetProjectInfo', {});
-        // @ts-ignore
-        return res['projectName'];
+    async getProjetInfo() : Promise<string> {
+        const res = await this.client.call('GetProjectInfo', {}) as any;
+        return res.projectName;
     }
+
+    async getStatus() : Promise<string> {
+        const res = await this.client.call('Status', {}) as any;
+        return res.description;
+    }
+
+    async getModuleStatus() : Promise<GetModuleStatusAnswer> {
+        const res = await this.client.call('GetModulesStatus', {}) as GetModuleStatusAnswer;
+        return res;
+    }
+
+    async createIntentionsBlock(node: NodeReference) : Promise<CreateIntentionsBlockAnswer> {
+        const res = await this.client.call('CreateIntentionsBlock', {node}) as CreateIntentionsBlockAnswer;
+        return res;
+    }
+
+    // async deleteIntentionsBlock(blockUUID: string) : Promise<void> {
+    //     const res = await this.client.call('DeleteIntentionsBlock', {blockUUID}) as CreateIntentionsBlockAnswer;
+    //     return res;
+    // }
+}
+
+interface GetModuleStatusAnswer {
+    repoAvailable: boolean;
+    modules: ModuleStatus[];
+}
+
+interface ModuleStatus {
+    name: string;
+    deployed: boolean;
+    canBeDeployed: boolean;
+    reloadable: boolean;
+    dependenciesNotFound: string[];
+    undeployableDependencies: string[];
+}
+
+interface CreateIntentionsBlockAnswer {
+    blockUUID: string;
+    intentions: Intention[];
+}
+
+interface NodeReference {
+    model: string;
+    id: NodeIDInfo;
+}
+
+interface Intention {
+    model: string;
+    id: NodeIDInfo;
+}
+
+type NodeIDInfo = { }
+
+interface RegularNodeIDInfo extends NodeIDInfo {
+    regularId: number;
+}
+
+interface ForeignNodeIDInfo extends NodeIDInfo {
+    foreignId: string;
 }
