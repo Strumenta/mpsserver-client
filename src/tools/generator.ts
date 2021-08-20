@@ -1,8 +1,9 @@
 import { parseString } from 'xml2js';
 import { promises as fsPromises } from 'fs';
+import {GetModuleStatusAnswer, GetModuleStatusAnswerWithMetadata} from "../messages";
 
 function convertType(xmlType: any) : string {
-    const xmlTypeName = xmlType['$'].name;
+    const xmlTypeName = xmlType.attrs.name;
     if (xmlTypeName === 'String') {
         return 'string';
     }
@@ -30,7 +31,7 @@ function codeForEmptyInterface(name: string) : string {
 
 function hasMetadata(message: any) : boolean {
     const fields = message.field || [];
-    const fieldsNames = fields.map((el:any)=>el['$'].name);
+    const fieldsNames = fields.map((el:any)=>el.attrs.name);
     return fieldsNames.indexOf('requestId') !== -1 && fieldsNames.indexOf('type') !== -1;
 }
 
@@ -43,7 +44,7 @@ function generateInterface(name: string, fields: any[], fieldsNamesToSkip: strin
     let gen = "";
     gen += `export interface ${name} {\n`;
     fields.forEach((field: any) => {
-        const fieldName = field['$'].name;
+        const fieldName = field.attrs.name;
         if (fieldsNamesToSkip.indexOf(fieldName) === -1) {
             const type = convertType(field.type[0]);
             gen += `  ${fieldName}: ${type}\n`;
@@ -53,21 +54,38 @@ function generateInterface(name: string, fields: any[], fieldsNamesToSkip: strin
     return gen;
 }
 
-async function processXmlFile(paths: string[], generationPath: string) {
+function uncapitalize(s: string) {
+    return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+async function processXmlFile(paths: string[], messagesGenerationPath: string, clientGenerationPath: string) {
     const knownTypes : string[] = [];
     let gen = "";
+    let clientGen = "";
+    clientGen += "class Client {\n\n";
     paths.forEach((path:string) => {
         fsPromises.readFile(path, 'utf-8').then((xmlCode: string)=> {
-            parseString(xmlCode, (err, result: any) => {
+            parseString(xmlCode, {attrkey: 'attrs'}, (err, result: any) => {
                 if (err) {
                     console.error('There was an error when parsing: ', err);
                 } else {
+
+                    result.wsprotocol.requestEndpoint.forEach((endpoint: any) => {
+                        console.log("endpoint", JSON.stringify(endpoint, null, 2));
+                        //const msgName = endpoint.attrs.messageType;
+                        //const methodName = uncapitalize(msgName);
+                        clientGen += `ciao`;
+                    //     clientGen += `async ${methodName}() : Promise<${msgName}> {
+                    //         const res = await this.client.call('${msgName}', {}) as ${msgName}Metadata;
+                    //     return {repoAvailable: res.repoAvailable, modules: res.modules} as ${msgName};
+                    // }`;
+                    });
+
                     result.wsprotocol.message.forEach((message: any) => {
-                        const name = message['$'].name;
+                        const name = message.attrs.name;
                         const fields = message.field || [];
-                        const fieldsNames = fields.map((el:any)=>el['$'].name);
-                        // console.log("fieldsNames", fieldsNames);
-                        if (knownTypes.indexOf(name) == -1) {
+
+                        if (knownTypes.indexOf(name) === -1) {
                             knownTypes.push(name);
                             if (fields.length === 0) {
                                 gen += codeForEmptyInterface(name);
@@ -85,11 +103,16 @@ async function processXmlFile(paths: string[], generationPath: string) {
                             }
                         }
                     })
-                    fsPromises.writeFile(generationPath, gen, 'utf-8')
+
                 }
             })
         });
-    })
+    });
+
+    clientGen += "}\n";
+    console.log("clientGen", clientGen);
+    fsPromises.writeFile(messagesGenerationPath, gen, 'utf-8');
+    fsPromises.writeFile(clientGenerationPath, clientGen, 'utf-8');
 }
 
 const baseDir = "/Users/federico/repos/mpsserver/mpscode/solutions/com.strumenta.mpsserver.server/source_gen/com/strumenta/mpsserver/logic/";
@@ -99,4 +122,4 @@ processXmlFile([`${baseDir}/wsprotocol_Actions.xml`,
     `${baseDir}/wsprotocol_Make.xml`,
     `${baseDir}/wsprotocol_Nodes.xml`,
     `${baseDir}/wsprotocol_Projects.xml`,
-    `${baseDir}/wsprotocol_Status.xml`], "gen/messages.ts");
+    `${baseDir}/wsprotocol_Status.xml`], "gen/messages.ts", "gen/client.ts");
