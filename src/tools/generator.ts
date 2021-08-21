@@ -76,7 +76,8 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     client.addImportDeclaration({namedImports: ["BaseWSClient"], moduleSpecifier: "./BaseWSClient"})
 
     const clientClass = client.addClass({
-       isAbstract: true,
+       isAbstract: false,
+       isExported: true,
        name: "MPSServerClientGen",
        extends: "BaseWSClient"
     });
@@ -203,10 +204,12 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
 }
 
 const baseDir = "/Users/federico/repos/mpsserver/mpscode/solutions/com.strumenta.mpsserver.server/source_gen/com/strumenta/mpsserver/logic/";
+const modelixDir = "/Users/federico/repos/mpsserver/mpscode/solutions/com.strumenta.mpsserver.modelix/source_gen/com/strumenta/mpsserver/modelix/serveraddons/"
 
 processXmlFile([`${baseDir}/wsprotocol_Actions.xml`,
     `${baseDir}/wsprotocol_Intentions.xml`,
     `${baseDir}/wsprotocol_Make.xml`,
     `${baseDir}/wsprotocol_Nodes.xml`,
     `${baseDir}/wsprotocol_Projects.xml`,
-    `${baseDir}/wsprotocol_Status.xml`], "gen/messages.ts", "src/MPSServerClientGen.ts");
+    `${baseDir}/wsprotocol_Status.xml`,
+    `${modelixDir}/wsprotocol_ModelixIntegration.xml`], "gen/messages.ts", "src/MPSServerClientGen.ts");

@@ -14,18 +14,22 @@ export abstract class BaseWSClient {
         });
     }
 
-    async connect() {
-        const p = new Promise<void>((resolve, reject) => {
+    async connect(waitingTime = 5000) {
+        let timer : ReturnType<typeof setTimeout>;
+        const timeoutPromise = new Promise((resolve, reject) => timer = setTimeout(() => reject("timeout expired"), waitingTime));
+        const connectionPromise = new Promise<void>((resolve, reject) => {
             if (this.connected) {
+                clearInterval(timer);
                 resolve();
                 return;
             }
             this.client.on("open", () => {
                 this.connected = true;
+                clearInterval(timer);
                 resolve();
                 return;
             });
         });
-        return p;
+        return Promise.race([timeoutPromise, connectionPromise]);
     }
 }

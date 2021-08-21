@@ -1,15 +1,11 @@
-export interface ExecuteActionWithMetadata {
+export interface CreateIntentionsBlockWithMetadata {
   node: NodeReference
-  action: string
-  params: {[key:string]:string}
   requestId: string
   type: string
 }
 
-export interface ExecuteAction {
+export interface CreateIntentionsBlock {
   node: NodeReference
-  action: string
-  params: {[key:string]:string}
 }
 
 export interface NodeReference {
@@ -25,30 +21,6 @@ export interface RegularNodeIDInfo {
 
 export interface ForeignNodeIDInfo {
   foreignId: string
-}
-
-export interface ExecuteActionAnswerWithMetadata {
-  success: boolean
-  errorMessage: string
-  result: any
-  requestId: string
-  type: string
-}
-
-export interface ExecuteActionAnswer {
-  success: boolean
-  errorMessage: string
-  result: any
-}
-
-export interface CreateIntentionsBlockWithMetadata {
-  node: NodeReference
-  requestId: string
-  type: string
-}
-
-export interface CreateIntentionsBlock {
-  node: NodeReference
 }
 
 export interface CreateIntentionsBlockAnswerWithMetadata {
@@ -115,6 +87,34 @@ export interface ExecuteIntentionWithMetadata {
 export interface ExecuteIntention {
   blockUUID: UUID
   index: number
+}
+
+export interface ExecuteActionWithMetadata {
+  node: NodeReference
+  action: string
+  params: {[key:string]:string}
+  requestId: string
+  type: string
+}
+
+export interface ExecuteAction {
+  node: NodeReference
+  action: string
+  params: {[key:string]:string}
+}
+
+export interface ExecuteActionAnswerWithMetadata {
+  success: boolean
+  errorMessage: string
+  result: any
+  requestId: string
+  type: string
+}
+
+export interface ExecuteActionAnswer {
+  success: boolean
+  errorMessage: string
+  result: any
 }
 
 export interface MakeProjectWithMetadata {
@@ -192,6 +192,55 @@ export interface GetProjectInfoAnswer {
   projectName: string
 }
 
+export interface ModelixCleanTransientWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type ModelixCleanTransient = { }
+
+export interface ModelixCheckoutTransientProjectWithMetadata {
+  projectName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixCheckoutTransientProject {
+  projectName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+}
+
+export interface ModelixCheckoutTransientModuleWithMetadata {
+  moduleName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixCheckoutTransientModule {
+  moduleName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+}
+
+export interface ModelixResetModelServerWithMetadata {
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixResetModelServer {
+  modelServerUrl: string
+}
+
 export interface StatusWithMetadata {
   requestId: string
   type: string
@@ -216,14 +265,14 @@ export interface GetModulesStatusWithMetadata {
 
 export type GetModulesStatus = { }
 
-export interface GetModuleStatusAnswerWithMetadata {
+export interface GetModulesStatusAnswerWithMetadata {
   repoAvailable: boolean
   modules: ModuleStatus[]
   requestId: string
   type: string
 }
 
-export interface GetModuleStatusAnswer {
+export interface GetModulesStatusAnswer {
   repoAvailable: boolean
   modules: ModuleStatus[]
 }
@@ -235,6 +284,34 @@ export interface ModuleStatus {
   reloadable: boolean
   dependenciesNotFound: string[]
   undeployableDependencies: string[]
+}
+
+export interface GetModuleInfoWithMetadata {
+  moduleName: string
+  requestId: string
+  type: string
+}
+
+export interface GetModuleInfo {
+  moduleName: string
+}
+
+export interface GetModuleInfoAnswerWithMetadata {
+  models: ModelInfo[]
+  requestId: string
+  type: string
+}
+
+export interface GetModuleInfoAnswer {
+  models: ModelInfo[]
+}
+
+export interface ModelInfo {
+  qualifiedName: string
+  uuid: UUID
+  foreignName: string
+  intValue: number
+  readOnly: boolean
 }
 
 export interface RequestForPropertyChangeWithMetadata {
@@ -322,14 +399,6 @@ export interface NodeInfoDetailed {
 export interface ReferenceInfo {
   id: NodeIDInfo
   model: ModelInfo
-}
-
-export interface ModelInfo {
-  qualifiedName: string
-  uuid: UUID
-  foreignName: string
-  intValue: number
-  readOnly: boolean
 }
 
 export interface NodeRemovedWithMetadata {
