@@ -1,26 +1,39 @@
 import {MPSServerClient} from ".";
 
-const client = new MPSServerClient('ws://localhost:2908/jsonrpc');
+const client = new MPSServerClient('ws://localhost:2913/jsonrpc');
 
 async function core() {
     await client.connect().catch((reason: any)=> {
-        console.error("timeout, unable to connect to server");
+        console.error("unable to connect to server", reason);
         process.exit(1);
     });
     const projectName = await client.getProjectInfo();
     console.log("project name", projectName);
     const modulesStatus = await client.getModulesStatus();
     console.log("got modules status");
-    modulesStatus.modules.forEach(async (module) => {
+    modulesStatus.modules.forEach((module) => {
         // console.log(" - got module", module.name);
-        const moduleInfo = await client.getModuleInfo(module.name);
-        moduleInfo.forEach(async (model) => {
-            //console.log("   - got model", model.qualifiedName);
-            const nodes = (await client.getInstancesOfConcept(model.qualifiedName, "com.strumenta.mpsserver.protocol.structure.WebSocketsAPIsGroup")).nodes;
-            nodes.forEach(async (node)=> {
-                console.log("APIS group", node.name);
-            })
-        })
+        if (module.name.startsWith("com.strumenta")) {
+            console.log(" - got module", module.name);
+            client.getModuleInfo(module.name).then((moduleInfo) => {
+                moduleInfo.forEach((model) => {
+                    console.log("   - got model", model.qualifiedName);
+                    client.getInstancesOfConcept(model.qualifiedName,
+                        "com.strumenta.mpsserver.protocol.WebSocketsAPIsGroup")
+                        .then((answer) => {
+                            const nodes = answer.nodes;
+                            // if (nodes.length > 0) {
+                            //     console.log("      nodes", nodes);
+                            // }
+                            nodes.forEach((node) => {
+                                console.log("APIS group", node.name);
+                            })
+                        }).catch((reason) => {
+                        // console.error("unable to get instances for this model", model.qualifiedName);
+                    });
+                })
+            });
+        }
     });
 }
 core();

@@ -16,7 +16,7 @@ export abstract class BaseWSClient {
 
     async connect(waitingTime = 5000) {
         let timer : ReturnType<typeof setTimeout>;
-        const timeoutPromise = new Promise((resolve, reject) => timer = setTimeout(() => reject("timeout expired"), waitingTime));
+        const timeoutPromise = new Promise((resolve, reject) => timer = setTimeout(() => reject(`timeout expired (${waitingTime} ms)`), waitingTime));
         const connectionPromise = new Promise<void>((resolve, reject) => {
             if (this.connected) {
                 clearInterval(timer);
