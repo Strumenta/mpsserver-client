@@ -2,6 +2,8 @@
 import { Server } from 'mock-socket';
 import { expect } from 'chai';
 import {MPSServerClient} from "../src";
+import WebSocket from 'ws';
+
 
 class ChatApp {
     messages: any[];
@@ -44,28 +46,37 @@ class ChatApp {
 // // });
 describe('subscriptions', () => {
     it('modelChanges', done => {
-        console.log("starting");
+        // console.log("starting");
+        const wss = new WebSocket.Server({
+            port: 9000
+        });
+
         // const result = 5 + 2;
         // expect(result).equal(7);
         const fakeURL = 'ws://localhost:9000';
-        const mockServer = new Server(fakeURL);
+        //const mockServer = new Server(fakeURL);
 
-        mockServer.on('connection', socket => {
-            console.log("connection");
-            socket.on('message', data => {
+
+        wss.on('connection', socket => {
+           // console.log("connection");
+            socket.on('message', (datatxt: string) => {
                 // t.is(data, 'test message from app', 'we have intercepted the message and can assert on it');
                 // socket.send('test message from mock server');
-                console.log("Server received", data);
+                const data = JSON.parse(datatxt);
+                // console.log("Server received", data);
+                if (data.method === 'rpc.on') {
+                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}))
+                }
             });
         });
 
         const client = new MPSServerClient(fakeURL);
-        client.connect(500).then(res => {
-            client.registerForModelChanges("mymodel.foo.bar");
-            setTimeout(() => {
-                console.log("closing mock server");
-                mockServer.stop(done);
-            }, 100);
+        client.connect(500).then(res1 => {
+            client.registerForModelChanges("mymodel.foo.bar").then( res2 => {
+                // console.log("got answer to registerForModelChanges");
+                wss.close();
+                done();
+            });
         }).catch(err => {
             done(`failed because not connected ${err}`)
         });
