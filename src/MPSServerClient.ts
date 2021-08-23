@@ -228,4 +228,8 @@ export class MPSServerClient extends BaseWSClient {
         const _params : AskErrorsForNode = {rootNode};
         await this.client.notify('AskErrorsForNode', _params);
     }
+
+    registerForModelChanges(modelName: string) : void {
+        this.client.subscribe(`modelChanges:${modelName}`)
+    }
 }

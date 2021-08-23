@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "declaration": true,
+    "strictNullChecks": true,
+    "downlevelIteration": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "lib": ["DOM", "DOM.Iterable", "ES5"],
+    "esModuleInterop": true,
+    "experimentalDecorators": true
+  },
+  "include": [
+    "src", "test"
+  ]
+}
