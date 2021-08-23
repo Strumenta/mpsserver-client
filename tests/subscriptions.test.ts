@@ -3,7 +3,7 @@ import { Server } from 'mock-socket';
 import { expect } from 'chai';
 import {MPSServerClient} from "../src";
 import WebSocket from 'ws';
-import {NodeAdded} from "../src/messages";
+import {NodeAdded, NodeInfoDetailed} from "../src/messages";
 
 
 class ChatApp {
@@ -55,7 +55,7 @@ describe('subscriptions', () => {
         // const result = 5 + 2;
         // expect(result).equal(7);
         const fakeURL = 'ws://localhost:9000';
-        //const mockServer = new Server(fakeURL);
+        // const mockServer = new Server(fakeURL);
 
 
         wss.on('connection', socket => {
@@ -66,10 +66,29 @@ describe('subscriptions', () => {
                 const data = JSON.parse(datatxt);
                 // console.log("Server received", data);
                 if (data.method === 'rpc.on') {
-                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}))
-                    socket.send(JSON.stringify({"notification": "modelChanges", "params": {
-                        type: "NodeAdded", parentNodeId : null, child: null, index: 2, relationName: "foos"
-                        }}))
+                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
+
+                    const nodeAdded : NodeAdded = {
+                        type: "NodeAdded",
+                        parentNodeId :{
+                            regularId: "nodeID-123"
+                        },
+                        child: {
+                            abstractConcept: false,
+                            children: [],
+                            concept: "myconcept",
+                            conceptAlias:"my",
+                            containingLink: "myparentlink",
+                            id: "nodeID-234",
+                            interfaceConcept: false,
+                            name: "MyNode",
+                            properties: {},
+                            refs: {}
+                        },
+                        index: 2,
+                        relationName: "foos"
+                    } as NodeAdded;
+                    socket.send(JSON.stringify({"notification": "modelChanges", "params": nodeAdded}));
                 }
             });
         });
@@ -86,7 +105,26 @@ describe('subscriptions', () => {
                 // console.log("got answer to registerForModelChanges");
                 wss.close();
                 expect(onNodeAddedReceived.length === 1);
-                expect(onNodeAddedReceived[0].index === 2);
+                expect(onNodeAddedReceived[0] === {
+                    type: "NodeAdded",
+                    parentNodeId :{
+                        regularId: "nodeID-123"
+                    },
+                    child: {
+                        abstractConcept: false,
+                        children: [],
+                        concept: "myconcept",
+                        conceptAlias:"my",
+                        containingLink: "myparentlink",
+                        id: "nodeID-234",
+                        interfaceConcept: false,
+                        name: "MyNode",
+                        properties: {},
+                        refs: {}
+                    },
+                    index: 2,
+                    relationName: "foos"
+                } as NodeAdded);
                 done();
             });
         }).catch(err => {
