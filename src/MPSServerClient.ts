@@ -229,14 +229,41 @@ export class MPSServerClient extends BaseWSClient {
         await this.client.notify('AskErrorsForNode', _params);
     }
 
-    async registerForModelChanges(modelName: string, modelListener: ModelListener) : Promise<void> {
-        await this.client.subscribe(["modelChanges", modelName])
+    async registerForModelChanges(modelName: string, modelListener: ModelListener = {}) : Promise<void> {
+        this.client.addListener("modelChanges", (eventData:ModelChangesNotification)=>{
+            // console.log("received notification", eventData);
+            if (eventData.type === "NodeAdded") {
+                if (modelListener.onNodeAdded != null) {
+                    modelListener.onNodeAdded(eventData as NodeAdded);
+                }
+            } else {
+                throw new Error(`unknown ModelChanges notification type: ${eventData.type}`);
+            }
+        });
+        await this.client.subscribe(["modelChanges", modelName]);
     }
 }
 
-type ModelListener = (modelChange: ModelChange) => void;
+// type ModelListener = (modelChange: ModelChange) => void;
 
 interface ModelChange {
     mode: string,
     changeType: string
+}
+
+interface ModelListener {
+    onNodeAdded?: OnNodeAdded
+}
+
+type OnNodeAdded = (event: NodeAdded) => void;
+
+interface ModelChangesNotification {
+    type: string;
+}
+
+interface NodeAdded extends ModelChangesNotification {
+    parentNodeId: NodeIDInfo;
+    child: NodeInfoDetailed;
+    index: number;
+    relationName: string;
 }

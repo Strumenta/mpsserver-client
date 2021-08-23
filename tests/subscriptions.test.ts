@@ -3,6 +3,7 @@ import { Server } from 'mock-socket';
 import { expect } from 'chai';
 import {MPSServerClient} from "../src";
 import WebSocket from 'ws';
+import {NodeAdded} from "../src/messages";
 
 
 class ChatApp {
@@ -66,15 +67,26 @@ describe('subscriptions', () => {
                 // console.log("Server received", data);
                 if (data.method === 'rpc.on') {
                     socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}))
+                    socket.send(JSON.stringify({"notification": "modelChanges", "params": {
+                        type: "NodeAdded", parentNodeId : null, child: null, index: 2, relationName: "foos"
+                        }}))
                 }
             });
         });
 
         const client = new MPSServerClient(fakeURL);
+        const onNodeAddedReceived : NodeAdded[] = [];
         client.connect(500).then(res1 => {
-            client.registerForModelChanges("mymodel.foo.bar").then( res2 => {
+            client.registerForModelChanges("mymodel.foo.bar", {
+                onNodeAdded: (notification) => {
+                   // console.log("callback for onNodeAdded", notification);
+                   onNodeAddedReceived.push(notification);
+                }
+            }).then( res2 => {
                 // console.log("got answer to registerForModelChanges");
                 wss.close();
+                expect(onNodeAddedReceived.length === 1);
+                expect(onNodeAddedReceived[0].index === 2);
                 done();
             });
         }).catch(err => {
