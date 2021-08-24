@@ -2,46 +2,39 @@ import { expect } from 'chai';
 import {MPSServerClient} from "../src";
 import WebSocket from 'ws';
 import {ErrorsForModelReported, NodeAdded, NodeRemoved} from "../src/notifications";
+import {SimpleWSServer} from "./support";
 
 describe('subscriptions', () => {
     it('add node', done => {
-        const wss = new WebSocket.Server({
-            port: 9000
-        });
-        const fakeURL = 'ws://localhost:9000';
+        const wsServer = new SimpleWSServer(9000, {
+            "rpc.on": (data, socket) => {
+                socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
 
-        wss.on('connection', socket => {
-            socket.on('message', (datatxt: string) => {
-                const data = JSON.parse(datatxt);
-                if (data.method === 'rpc.on') {
-                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
-
-                    const nodeAdded : NodeAdded = {
-                        type: "NodeAdded",
-                        parentNodeId :{
-                            regularId: "nodeID-123"
-                        },
-                        child: {
-                            abstractConcept: false,
-                            children: [],
-                            concept: "myconcept",
-                            conceptAlias:"my",
-                            containingLink: "myparentlink",
-                            id: "nodeID-234",
-                            interfaceConcept: false,
-                            name: "MyNode",
-                            properties: {},
-                            refs: {}
-                        },
-                        index: 2,
-                        relationName: "foos"
-                    } as NodeAdded;
-                    socket.send(JSON.stringify({"notification": "modelChanges", "params": nodeAdded}));
-                }
-            });
+                const nodeAdded : NodeAdded = {
+                    type: "NodeAdded",
+                    parentNodeId :{
+                        regularId: "nodeID-123"
+                    },
+                    child: {
+                        abstractConcept: false,
+                        children: [],
+                        concept: "myconcept",
+                        conceptAlias:"my",
+                        containingLink: "myparentlink",
+                        id: "nodeID-234",
+                        interfaceConcept: false,
+                        name: "MyNode",
+                        properties: {},
+                        refs: {}
+                    },
+                    index: 2,
+                    relationName: "foos"
+                } as NodeAdded;
+                socket.send(JSON.stringify({"notification": "modelChanges", "params": nodeAdded}));
+            }
         });
 
-        const client = new MPSServerClient(fakeURL);
+        const client = new MPSServerClient(wsServer.url());
         const onNodeAddedReceived : NodeAdded[] = [];
         client.connect(500).then(res1 => {
             client.registerForModelChanges("mymodel.foo.bar", {
@@ -49,7 +42,7 @@ describe('subscriptions', () => {
                    onNodeAddedReceived.push(notification);
                 }
             }).then( res2 => {
-                wss.close();
+                wsServer.close();
                 expect(onNodeAddedReceived.length === 1);
                 expect(onNodeAddedReceived[0] === {
                     type: "NodeAdded",
@@ -78,43 +71,35 @@ describe('subscriptions', () => {
         });
     });
     it('remove node', done => {
-        const wss = new WebSocket.Server({
-            port: 9000
-        });
-        const fakeURL = 'ws://localhost:9000';
+        const wsServer = new SimpleWSServer(9000, {
+            "rpc.on": (data, socket) => {
+                socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
 
-        wss.on('connection', socket => {
-            socket.on('message', (datatxt: string) => {
-                const data = JSON.parse(datatxt);
-                if (data.method === 'rpc.on') {
-                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
-
-                    const event : NodeRemoved = {
-                        type: "NodeRemoved",
-                        parentNodeId :{
-                            regularId: "nodeID-123"
-                        },
-                        child: {
-                            abstractConcept: false,
-                            children: [],
-                            concept: "myconcept",
-                            conceptAlias:"my",
-                            containingLink: "myparentlink",
-                            id: "nodeID-234",
-                            interfaceConcept: false,
-                            name: "MyNode",
-                            properties: {},
-                            refs: {}
-                        },
-                        index: 2,
-                        relationName: "foos"
-                    } as NodeRemoved;
-                    socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
-                }
-            });
+                const event : NodeRemoved = {
+                    type: "NodeRemoved",
+                    parentNodeId :{
+                        regularId: "nodeID-123"
+                    },
+                    child: {
+                        abstractConcept: false,
+                        children: [],
+                        concept: "myconcept",
+                        conceptAlias:"my",
+                        containingLink: "myparentlink",
+                        id: "nodeID-234",
+                        interfaceConcept: false,
+                        name: "MyNode",
+                        properties: {},
+                        refs: {}
+                    },
+                    index: 2,
+                    relationName: "foos"
+                } as NodeRemoved;
+                socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
+            }
         });
 
-        const client = new MPSServerClient(fakeURL);
+        const client = new MPSServerClient(wsServer.url());
         const received : NodeRemoved[] = [];
         client.connect(500).then(res1 => {
             client.registerForModelChanges("mymodel.foo.bar", {
@@ -122,7 +107,7 @@ describe('subscriptions', () => {
                     received.push(notification);
                 }
             }).then( res2 => {
-                wss.close();
+                wsServer.close();
                 expect(received.length === 1);
                 expect(received[0] === {
                     type: "NodeRemoved",
