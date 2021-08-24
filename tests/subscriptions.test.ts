@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {MPSServerClient} from "../src";
 import WebSocket from 'ws';
-import {NodeAdded, NodeRemoved} from "../src/notifications";
+import {ErrorsForModelReported, NodeAdded, NodeRemoved} from "../src/notifications";
 
 describe('subscriptions', () => {
     it('add node', done => {
@@ -144,6 +144,65 @@ describe('subscriptions', () => {
                     index: 2,
                     relationName: "foos"
                 } as NodeRemoved);
+                done();
+            });
+        }).catch(err => {
+            done(`failed because not connected ${err}`)
+        });
+    });
+    it('errors for model reported', done => {
+        const wss = new WebSocket.Server({
+            port: 9000
+        });
+        const fakeURL = 'ws://localhost:9000';
+
+        wss.on('connection', socket => {
+            socket.on('message', (datatxt: string) => {
+                const data = JSON.parse(datatxt);
+                if (data.method === 'rpc.on') {
+                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
+
+                    const event : ErrorsForModelReported = {
+                        type: "ErrorsForModelReported",
+                        issues: [
+                            {
+                                node: {
+                                    regularId: "nodeId-789"
+                                },
+                                severity: "error",
+                                message: "An error was found"
+                            }
+                        ],
+                        model: "mymodel.foo.bar"
+                    } as ErrorsForModelReported;
+                    socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
+                }
+            });
+        });
+
+        const client = new MPSServerClient(fakeURL);
+        const received : ErrorsForModelReported[] = [];
+        client.connect(500).then(res1 => {
+            client.registerForModelChanges("mymodel.foo.bar", {
+                onErrorsForModelReported: (notification) => {
+                    received.push(notification);
+                }
+            }).then( res2 => {
+                wss.close();
+                expect(received.length === 1);
+                expect(received[0] === {
+                    type: "ErrorsForModelReported",
+                    issues: [
+                        {
+                            node: {
+                                regularId: "nodeId-789"
+                            },
+                            severity: "error",
+                            message: "An error was found"
+                        }
+                    ],
+                    model: "mymodel.foo.bar"
+                } as ErrorsForModelReported);
                 done();
             });
         }).catch(err => {
