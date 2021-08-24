@@ -35,7 +35,7 @@ export interface CreateIntentionsBlockAnswer {
   intentions: Intention[]
 }
 
-export type UUID = { }
+export type UUID = string;
 
 export interface Intention {
   index: number
