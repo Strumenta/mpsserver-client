@@ -44,6 +44,15 @@ import { InsertNextSibling } from "./messages";
 import { ReferenceChange } from "./messages";
 import { CreateRoot } from "./messages";
 import { AskErrorsForNode } from "./messages";
+import {
+    ErrorsForModelReported, ErrorsForNodeReported,
+    ModelChangesNotification,
+    ModelListener,
+    NodeAdded,
+    NodeRemoved,
+    PropertyChanged,
+    ReferenceChanged
+} from "./notifications";
 
 export class MPSServerClient extends BaseWSClient {
     async createIntentionsBlock(node: NodeReference): Promise<CreateIntentionsBlockAnswer> {
@@ -230,11 +239,30 @@ export class MPSServerClient extends BaseWSClient {
     }
 
     async registerForModelChanges(modelName: string, modelListener: ModelListener = {}) : Promise<void> {
-        this.client.addListener("modelChanges", (eventData:ModelChangesNotification)=>{
-            // console.log("received notification", eventData);
+        this.client.addListener("modelChanges", (eventData: ModelChangesNotification)=>{
             if (eventData.type === "NodeAdded") {
                 if (modelListener.onNodeAdded != null) {
                     modelListener.onNodeAdded(eventData as NodeAdded);
+                }
+            } else if (eventData.type === "NodeRemoved") {
+                if (modelListener.onNodeRemoved != null) {
+                    modelListener.onNodeRemoved(eventData as NodeRemoved);
+                }
+            } else if (eventData.type === "PropertyChanged") {
+                if (modelListener.onPropertyChanged != null) {
+                    modelListener.onPropertyChanged(eventData as PropertyChanged);
+                }
+            } else if (eventData.type === "ReferenceChanged") {
+                if (modelListener.onReferenceChanged != null) {
+                    modelListener.onReferenceChanged(eventData as ReferenceChanged);
+                }
+            } else if (eventData.type === "ErrorsForModelReported") {
+                if (modelListener.onErrorsForModelReported != null) {
+                    modelListener.onErrorsForModelReported(eventData as ErrorsForModelReported);
+                }
+            } else if (eventData.type === "ErrorsForNodeReported") {
+                if (modelListener.onErrorsForNodeReported != null) {
+                    modelListener.onErrorsForNodeReported(eventData as ErrorsForNodeReported);
                 }
             } else {
                 throw new Error(`unknown ModelChanges notification type: ${eventData.type}`);
@@ -244,26 +272,3 @@ export class MPSServerClient extends BaseWSClient {
     }
 }
 
-// type ModelListener = (modelChange: ModelChange) => void;
-
-interface ModelChange {
-    mode: string,
-    changeType: string
-}
-
-interface ModelListener {
-    onNodeAdded?: OnNodeAdded
-}
-
-type OnNodeAdded = (event: NodeAdded) => void;
-
-interface ModelChangesNotification {
-    type: string;
-}
-
-interface NodeAdded extends ModelChangesNotification {
-    parentNodeId: NodeIDInfo;
-    child: NodeInfoDetailed;
-    index: number;
-    relationName: string;
-}

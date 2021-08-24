@@ -342,47 +342,6 @@ export interface RegisterForChangesWithMetadata {
 
 export type RegisterForChanges = { }
 
-export interface PropertyChangeWithMetadata {
-  node: NodeReference
-  propertyName: string
-  propertyValue: any
-  type: string
-}
-
-export interface PropertyChange {
-  node: NodeReference
-  propertyName: string
-  propertyValue: any
-}
-
-export interface ReferenceChangedWithMetadata {
-  node: NodeReference
-  referenceName: string
-  referenceValue: NodeReference
-  type: string
-}
-
-export interface ReferenceChanged {
-  node: NodeReference
-  referenceName: string
-  referenceValue: NodeReference
-}
-
-export interface NodeAddedWithMetadata {
-  parentNodeId: NodeIDInfo
-  child: NodeInfoDetailed
-  index: number
-  relationName: string
-  type: string
-}
-
-export interface NodeAdded {
-  parentNodeId: NodeIDInfo
-  child: NodeInfoDetailed
-  index: number
-  relationName: string
-}
-
 export interface NodeInfoDetailed {
   containingLink: string
   children: NodeInfoDetailed[]
@@ -401,20 +360,6 @@ export interface ReferenceInfo {
   model: ModelInfo
 }
 
-export interface NodeRemovedWithMetadata {
-  parentNodeId: NodeIDInfo
-  child: NodeInfoDetailed
-  index: number
-  relationName: string
-  type: string
-}
-
-export interface NodeRemoved {
-  parentNodeId: NodeIDInfo
-  child: NodeInfoDetailed
-  index: number
-  relationName: string
-}
 
 export interface GetInstancesOfConceptWithMetadata {
   modelName: string
@@ -715,31 +660,8 @@ export interface GetNodeAnswer {
   nodeData: NodeInfoDetailed
 }
 
-export interface ErrorsForModelReportWithMetadata {
-  model: string
-  issues: IssueDescription[]
-  type: string
-}
-
-export interface ErrorsForModelReport {
-  model: string
-  issues: IssueDescription[]
-}
-
 export interface IssueDescription {
   message: string
   severity: string
   node: NodeIDInfo
 }
-
-export interface ErrorsForNodeReportWithMetadata {
-  rootNode: NodeReference
-  issues: IssueDescription[]
-  type: string
-}
-
-export interface ErrorsForNodeReport {
-  rootNode: NodeReference
-  issues: IssueDescription[]
-}
-
