@@ -1,62 +1,85 @@
 import { BaseWSClient } from "./BaseWSClient";
+import { PropertyValue } from "./base";
 import {
+    AddChild,
+    AddChildAnswerWithMetadata,
+    AnswerAlternativesItem,
+    AnswerAlternativesWithMetadata,
+    AnswerDefaultInsertionWithMetadata,
+    AnswerForDirectReferencesWithMetadata,
+    AnswerForWrappingReferencesWithMetadata,
+    AnswerPropertyChange,
+    AnswerPropertyChangeWithMetadata,
+    AskAlternatives,
+    AskErrorsForNode,
+    CreateIntentionsBlock,
+    CreateIntentionsBlockAnswer,
+    CreateIntentionsBlockAnswerWithMetadata,
+    CreateRoot,
+    DefaultInsertion,
+    DeleteIntentionsBlock,
+    DeleteNode,
+    DirAlternative,
+    DoneAnswerMessage,
+    DoneAnswerMessageWithMetadata, ErrorsForModelReport, ErrorsForNodeReport,
     ExecuteAction,
     ExecuteActionAnswer,
-    ExecuteActionAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata,
+    ExecuteActionAnswerWithMetadata,
+    ExecuteIntention,
+    GetInstancesOfConcept,
+    GetInstancesOfConceptAnswer,
+    GetInstancesOfConceptAnswerWithMetadata,
+    GetIntentionsBlock,
+    GetIntentionsBlockAnswer,
+    GetIntentionsBlockAnswerWithMetadata,
+    GetModuleInfo,
+    GetModuleInfoAnswerWithMetadata,
+    GetModulesStatus,
     GetModulesStatusAnswer,
-    GetModulesStatusAnswerWithMetadata, ModelInfo,
+    GetModulesStatusAnswerWithMetadata,
+    GetNode,
+    GetNodeAnswerWithMetadata,
+    GetProjectInfo,
+    GetProjectInfoAnswerWithMetadata,
+    GetRoots,
+    GetRootsAnswer,
+    GetRootsAnswerWithMetadata,
+    InsertNextSibling,
+    InstantiateConcept,
+    MakeProject,
+    MakeProjectAnswer,
+    MakeProjectAnswerWithMetadata,
+    ModelInfo,
     ModelixCheckoutTransientModule,
     ModelixCheckoutTransientProject,
     ModelixCleanTransient,
-    ModelixResetModelServer
+    ModelixResetModelServer,
+    NewProject, NodeAdded,
+    NodeIDInfo,
+    NodeInfoDetailed,
+    NodeReference, NodeRemoved,
+    OpenProject, PropertyChange,
+    ReferenceChange, ReferenceChanged,
+    RegisterForChangesListener, RegisterForChangesNotification,
+    RegularNodeIDInfo,
+    RequestForDirectReferences,
+    RequestForPropertyChange,
+    RequestForWrappingReferences,
+    SetChild,
+    Status,
+    StatusAnswerWithMetadata,
+    UUID,
+    WraAlternative
 } from "./messages";
-import { NodeReference } from "./messages";
-import { CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata } from "./messages";
-import { GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata } from "./messages";
-import { DeleteIntentionsBlock } from "./messages";
-import { UUID } from "./messages";
-import { ExecuteIntention } from "./messages";
-import { MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata } from "./messages";
-import { OpenProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
-import { NewProject } from "./messages";
-import { GetProjectInfo, GetProjectInfoAnswerWithMetadata } from "./messages";
-import { Status, StatusAnswerWithMetadata } from "./messages";
-import { GetModulesStatus } from "./messages";
-import { RequestForPropertyChange, AnswerPropertyChange, AnswerPropertyChangeWithMetadata } from "./messages";
-import { GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata } from "./messages";
-import { GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata } from "./messages";
-import { AddChild, AddChildAnswerWithMetadata } from "./messages";
-import { DefaultInsertion, AnswerDefaultInsertionWithMetadata } from "./messages";
-import { NodeIDInfo } from "./messages";
-import { AskAlternatives, AnswerAlternativesWithMetadata } from "./messages";
-import { AnswerAlternativesItem } from "./messages";
-import { RequestForWrappingReferences, AnswerForWrappingReferencesWithMetadata } from "./messages";
-import { WraAlternative } from "./messages";
-import { RequestForDirectReferences, AnswerForDirectReferencesWithMetadata } from "./messages";
-import { DirAlternative } from "./messages";
-import { GetNode, GetNodeAnswerWithMetadata } from "./messages";
-import { NodeInfoDetailed } from "./messages";
-import { InstantiateConcept } from "./messages";
-import { SetChild } from "./messages";
-import { RegularNodeIDInfo } from "./messages";
-import { DeleteNode } from "./messages";
-import { InsertNextSibling } from "./messages";
-import { ReferenceChange } from "./messages";
-import { CreateRoot } from "./messages";
-import { AskErrorsForNode } from "./messages";
-import {
-    ErrorsForModelReport,
-    ErrorsForNodeReport,
-    RegisterForChangesNotification,
-    RegisterForChangesListener,
-    NodeAdded,
-    NodeRemoved,
-    PropertyChange,
-    ReferenceChanged
-} from "./messages";
-import {PropertyValue} from "./base";
 
 export class MPSServerClient extends BaseWSClient {
+    async executeAction(node: NodeReference, action: string, params: {[key:string]:string}): Promise<ExecuteActionAnswer> {
+        await this.connect();
+        const _params : ExecuteAction = {node, action, params};
+        const res = await this.client.call('ExecuteAction', _params) as ExecuteActionAnswerWithMetadata;
+        return {success: res.success, errorMessage: res.errorMessage, result: res.result} as ExecuteActionAnswer;
+    }
+
     async createIntentionsBlock(node: NodeReference): Promise<CreateIntentionsBlockAnswer> {
         await this.connect();
         const _params : CreateIntentionsBlock = {node};
@@ -83,88 +106,11 @@ export class MPSServerClient extends BaseWSClient {
         await this.client.notify('ExecuteIntention', _params);
     }
 
-    async executeAction(node: NodeReference, action: string, params: {[key:string]:string}): Promise<ExecuteActionAnswer> {
-        await this.connect();
-        const _params : ExecuteAction = {node, action, params};
-        const res = await this.client.call('ExecuteAction', _params) as ExecuteActionAnswerWithMetadata;
-        return {success: res.success, errorMessage: res.errorMessage, result: res.result} as ExecuteActionAnswer;
-    }
-
     async makeProject(cleanMake: boolean): Promise<MakeProjectAnswer> {
         await this.connect();
         const _params : MakeProject = {cleanMake};
         const res = await this.client.call('MakeProject', _params) as MakeProjectAnswerWithMetadata;
         return {messages: res.messages, success: res.success, message: res.message} as MakeProjectAnswer;
-    }
-
-    async openProject(projectPath: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : OpenProject = {projectPath};
-        const res = await this.client.call('OpenProject', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async newProject(): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : NewProject = {};
-        const res = await this.client.call('NewProject', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async getProjectInfo(): Promise<string> {
-        await this.connect();
-        const _params : GetProjectInfo = {};
-        const res = await this.client.call('GetProjectInfo', _params) as GetProjectInfoAnswerWithMetadata;
-        return res.projectName;
-    }
-
-    async modelixCleanTransient(): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : ModelixCleanTransient = {};
-        const res = await this.client.call('ModelixCleanTransient', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async modelixCheckoutTransientProject(projectName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : ModelixCheckoutTransientProject = {projectName, repositoryId, versionId, modelServerUrl};
-        const res = await this.client.call('ModelixCheckoutTransientProject', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async modelixCheckoutTransientModule(moduleName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : ModelixCheckoutTransientModule = {moduleName, repositoryId, versionId, modelServerUrl};
-        const res = await this.client.call('ModelixCheckoutTransientModule', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async modelixResetModelServer(modelServerUrl: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : ModelixResetModelServer = {modelServerUrl};
-        const res = await this.client.call('ModelixResetModelServer', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async status(): Promise<string> {
-        await this.connect();
-        const _params : Status = {};
-        const res = await this.client.call('Status', _params) as StatusAnswerWithMetadata;
-        return res.description;
-    }
-
-    async getModulesStatus(): Promise<GetModulesStatusAnswer> {
-        await this.connect();
-        const _params : GetModulesStatus = {};
-        const res = await this.client.call('GetModulesStatus', _params) as GetModulesStatusAnswerWithMetadata;
-        return {repoAvailable: res.repoAvailable, modules: res.modules} as GetModulesStatusAnswer;
-    }
-
-    async getModuleInfo(moduleName: string): Promise<ModelInfo[]> {
-        await this.connect();
-        const _params : GetModuleInfo = {moduleName};
-        const res = await this.client.call('GetModuleInfo', _params) as GetModuleInfoAnswerWithMetadata;
-        return res.models;
     }
 
     async requestForPropertyChange(node: NodeReference, propertyName: string, propertyValue: PropertyValue): Promise<AnswerPropertyChange> {
@@ -260,7 +206,7 @@ export class MPSServerClient extends BaseWSClient {
         await this.client.notify('ReferenceChange', _params);
     }
 
-    async createRoot(modelName: string, conceptName: string, propertiesValues: {[key:string]:any}): Promise<void> {
+    async createRoot(modelName: string, conceptName: string, propertiesValues: {[key:string]:PropertyValue}): Promise<void> {
         await this.connect();
         const _params : CreateRoot = {modelName, conceptName, propertiesValues};
         await this.client.notify('CreateRoot', _params);
@@ -270,6 +216,76 @@ export class MPSServerClient extends BaseWSClient {
         await this.connect();
         const _params : AskErrorsForNode = {rootNode};
         await this.client.notify('AskErrorsForNode', _params);
+    }
+
+    async openProject(projectPath: string): Promise<DoneAnswerMessage> {
+        await this.connect();
+        const _params : OpenProject = {projectPath};
+        const res = await this.client.call('OpenProject', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async newProject(): Promise<DoneAnswerMessage> {
+        await this.connect();
+        const _params : NewProject = {};
+        const res = await this.client.call('NewProject', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async getProjectInfo(): Promise<string> {
+        await this.connect();
+        const _params : GetProjectInfo = {};
+        const res = await this.client.call('GetProjectInfo', _params) as GetProjectInfoAnswerWithMetadata;
+        return res.projectName;
+    }
+
+    async status(): Promise<string> {
+        await this.connect();
+        const _params : Status = {};
+        const res = await this.client.call('Status', _params) as StatusAnswerWithMetadata;
+        return res.description;
+    }
+
+    async getModulesStatus(): Promise<GetModulesStatusAnswer> {
+        await this.connect();
+        const _params : GetModulesStatus = {};
+        const res = await this.client.call('GetModulesStatus', _params) as GetModulesStatusAnswerWithMetadata;
+        return {repoAvailable: res.repoAvailable, modules: res.modules} as GetModulesStatusAnswer;
+    }
+
+    async getModuleInfo(moduleName: string): Promise<ModelInfo[]> {
+        await this.connect();
+        const _params : GetModuleInfo = {moduleName};
+        const res = await this.client.call('GetModuleInfo', _params) as GetModuleInfoAnswerWithMetadata;
+        return res.models;
+    }
+
+    async modelixCleanTransient(): Promise<DoneAnswerMessage> {
+        await this.connect();
+        const _params : ModelixCleanTransient = {};
+        const res = await this.client.call('ModelixCleanTransient', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async modelixCheckoutTransientProject(projectName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
+        await this.connect();
+        const _params : ModelixCheckoutTransientProject = {projectName, repositoryId, versionId, modelServerUrl};
+        const res = await this.client.call('ModelixCheckoutTransientProject', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async modelixCheckoutTransientModule(moduleName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
+        await this.connect();
+        const _params : ModelixCheckoutTransientModule = {moduleName, repositoryId, versionId, modelServerUrl};
+        const res = await this.client.call('ModelixCheckoutTransientModule', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async modelixResetModelServer(modelServerUrl: string): Promise<DoneAnswerMessage> {
+        await this.connect();
+        const _params : ModelixResetModelServer = {modelServerUrl};
+        const res = await this.client.call('ModelixResetModelServer', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
     }
 
     async registerForModelChanges(modelName: string, modelListener: RegisterForChangesListener = {}) : Promise<void> {

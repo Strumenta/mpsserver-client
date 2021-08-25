@@ -1,6 +1,6 @@
 import { parseString } from 'xml2js';
 import { promises as fsPromises } from 'fs';
-import {Project, SourceFile} from "ts-morph";
+import {OptionalKind, ParameterDeclarationStructure, Project, SourceFile} from "ts-morph";
 
 function convertType(xmlType: any, sourceFile: SourceFile | null = null, fieldName: string | null = null) : string {
     if (fieldName === 'propertyValue') {
@@ -82,6 +82,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     await project.emit();
 
     client.addImportDeclaration({namedImports: ["BaseWSClient"], moduleSpecifier: "./BaseWSClient"})
+    client.addImportDeclaration({namedImports: ["PropertyValue"], moduleSpecifier: "./base"})
 
     const clientClass = client.addClass({
        isAbstract: false,
@@ -125,6 +126,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                             returnType: `Promise<${singleValueType}>`,
                             parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
                             statements: [
+                                `await this.connect();`,
                                 `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
                                 `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
                                 `return res.${answerFields[0].attrs.name};`]
@@ -138,8 +140,9 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                             name: methodName,
                             isAsync: true,
                             returnType: `Promise<${answerMsgName}>`,
-                            parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                            parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client, f.attrs.name)}}),
                             statements: [
+                                `await this.connect();`,
                                 `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
                                 `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
                                 `return {${answerFields.map((f: any) => `${f.attrs.name}: res.${f.attrs.name}`).join(", ")}} as ${answerMsgName};`]
@@ -154,7 +157,6 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                     const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
                     const methodName = uncapitalize(requestMsgName);
 
-
                     client.addImportDeclaration({
                         namedImports: [requestMsgName],
                         moduleSpecifier: "./messages"
@@ -163,8 +165,9 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                         name: methodName,
                         isAsync: true,
                         returnType: `Promise<void>`,
-                        parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                        parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client, f.attrs.name)}}),
                         statements: [
+                            `await this.connect();`,
                             `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
                             `await this.client.notify('${requestMsgName}', _params);`]
                     })
@@ -194,6 +197,30 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                         gen += `      | "${notification.attrs.messageType}"\n`;
                     });
                     gen += "}\n\n";
+
+                    // async registerForModelChanges(modelName: string, modelListener: RegisterForChangesListener = {}) : Promise<void> {
+                    const methodParams : OptionalKind<ParameterDeclarationStructure>[] = [];
+                    const msgName = endpoint.attrs.messageType;
+                    const msg = result.wsprotocol.message.find((message:any)=>message.attrs.name === msgName);
+                    const fields = msg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                    fields.forEach((field: any)=>{
+                        methodParams.push({
+                           name: field.attrs.name,
+                           type: convertType(field.type[0], client, field.attrs.name)
+                        });
+                    });
+                    methodParams.push({
+                       name: "listener",
+                       type: `${endpoint.attrs.messageType}Listener`,
+                       initializer: "{}"
+                    });
+                    const registerMethod = clientClass.addMethod({
+                        name: `registerFor${endpoint.attrs.messageType}`,
+                        isAsync: true,
+                        parameters: methodParams,
+                        returnType: "Promise<void>"
+                    });
+                    registerMethod.addStatements("await this.connect();");
                 });
 
                 result.wsprotocol.message.forEach((message: any) => {
@@ -235,6 +262,27 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
             }
         });
     }
+
+    const myImports : {[path:string]:string[]} = {};
+    client.getImportDeclarations().forEach((importDecl) => {
+        const path = importDecl.getModuleSpecifier().getLiteralValue();
+        if (!(path in myImports)) {
+            myImports[path] = [];
+        }
+        importDecl.getNamedImports().map((ni)=>ni.getName()).forEach((ni)=>myImports[path].push(ni));
+        importDecl.remove();
+    });
+
+    const importPaths = [];
+    for (const path in myImports) {
+        importPaths.push(path);
+    }
+    importPaths.sort().forEach((path:string)=>{
+        const uniques = myImports[path].filter(function(elem, index, self) {
+            return index === self.indexOf(elem);
+        }).sort();
+        client.addImportDeclaration({namedImports: uniques, moduleSpecifier: path});
+    });
 
     clientGen += "}\n";
     //console.log("printing");
