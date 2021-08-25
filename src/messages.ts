@@ -47,8 +47,9 @@ export interface ExecuteActionAnswer {
   result: unknown
 }
 
-
-
+//
+// messages for group Intentions
+//
 
 export interface CreateIntentionsBlockWithMetadata {
   node: NodeReference
@@ -59,7 +60,6 @@ export interface CreateIntentionsBlockWithMetadata {
 export interface CreateIntentionsBlock {
   node: NodeReference
 }
-
 
 export interface CreateIntentionsBlockAnswerWithMetadata {
   blockUUID: UUID
@@ -73,7 +73,7 @@ export interface CreateIntentionsBlockAnswer {
   intentions: Intention[]
 }
 
-export type UUID = string;
+export type UUID = string
 
 export interface Intention {
   index: number
@@ -113,7 +113,7 @@ export interface GetIntentionsBlockAnswer {
 
 export interface Result {
   success: boolean
-  explanation?: string
+  explanation: string
 }
 
 export interface ExecuteIntentionWithMetadata {
@@ -126,6 +126,10 @@ export interface ExecuteIntention {
   blockUUID: UUID
   index: number
 }
+
+//
+// messages for group Make
+//
 
 export interface MakeProjectWithMetadata {
   cleanMake: boolean
@@ -155,6 +159,10 @@ export interface LogMessage {
   kind: string
   text: string
 }
+
+//
+// messages for group Projects
+//
 
 export interface OpenProjectWithMetadata {
   projectPath: string
@@ -202,54 +210,9 @@ export interface GetProjectInfoAnswer {
   projectName: string
 }
 
-export interface ModelixCleanTransientWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type ModelixCleanTransient = Record<string, unknown>
-
-export interface ModelixCheckoutTransientProjectWithMetadata {
-  projectName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-  requestId: string
-  type: string
-}
-
-export interface ModelixCheckoutTransientProject {
-  projectName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-}
-
-export interface ModelixCheckoutTransientModuleWithMetadata {
-  moduleName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-  requestId: string
-  type: string
-}
-
-export interface ModelixCheckoutTransientModule {
-  moduleName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-}
-
-export interface ModelixResetModelServerWithMetadata {
-  modelServerUrl: string
-  requestId: string
-  type: string
-}
-
-export interface ModelixResetModelServer {
-  modelServerUrl: string
-}
+//
+// messages for group Status
+//
 
 export interface StatusWithMetadata {
   requestId: string
@@ -324,10 +287,67 @@ export interface ModelInfo {
   readOnly: boolean
 }
 
+//
+// messages for group ModelixIntegration
+//
+
+export interface ModelixCleanTransientWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type ModelixCleanTransient = Record<string, unknown>
+
+export interface ModelixCheckoutTransientProjectWithMetadata {
+  projectName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixCheckoutTransientProject {
+  projectName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+}
+
+export interface ModelixCheckoutTransientModuleWithMetadata {
+  moduleName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixCheckoutTransientModule {
+  moduleName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+}
+
+export interface ModelixResetModelServerWithMetadata {
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixResetModelServer {
+  modelServerUrl: string
+}
+
+//
+// messages for group Nodes
+//
+
 export interface RequestForPropertyChangeWithMetadata {
   node: NodeReference
   propertyName: string
-  propertyValue: any
+  propertyValue: PropertyValue
   requestId: string
   type: string
 }

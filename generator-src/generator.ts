@@ -2,7 +2,10 @@ import { parseString } from 'xml2js';
 import { promises as fsPromises } from 'fs';
 import {Project, SourceFile} from "ts-morph";
 
-function convertType(xmlType: any, sourceFile: SourceFile | null = null) : string {
+function convertType(xmlType: any, sourceFile: SourceFile | null = null, fieldName: string | null = null) : string {
+    if (fieldName === 'propertyValue') {
+        return "PropertyValue";
+    }
     const xmlTypeName = xmlType.attrs.name;
     if (xmlTypeName === 'String') {
         return 'string';
@@ -29,6 +32,9 @@ function convertType(xmlType: any, sourceFile: SourceFile | null = null) : strin
 }
 
 function codeForEmptyInterface(name: string) : string {
+    if (name === 'UUID') {
+        return `export type ${name} = string\n\n`
+    }
     return `export type ${name} = Record<string, unknown>\n\n`;
 }
 
@@ -49,7 +55,7 @@ function generateInterface(name: string, fields: any[], fieldsNamesToSkip: strin
     fields.forEach((field: any) => {
         const fieldName = field.attrs.name;
         if (fieldsNamesToSkip.indexOf(fieldName) === -1) {
-            const type = convertType(field.type[0]);
+            const type = convertType(field.type[0], null, fieldName);
             gen += `  ${fieldName}: ${type}\n`;
         }
     });

@@ -1,7 +1,6 @@
 import { BaseWSClient } from "./BaseWSClient";
 import { ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata } from "./messages";
 import { NodeReference } from "./messages";
-import { MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata } from "./messages";
 import { CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata } from "./messages";
 import { NodeReference } from "./messages";
 import { GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata } from "./messages";
@@ -10,6 +9,7 @@ import { DeleteIntentionsBlock } from "./messages";
 import { UUID } from "./messages";
 import { ExecuteIntention } from "./messages";
 import { UUID } from "./messages";
+import { MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata } from "./messages";
 import { OpenProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
 import { NewProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
 import { GetProjectInfo, GetProjectInfoAnswerWithMetadata } from "./messages";
@@ -62,12 +62,6 @@ export class MPSServerClientGen extends BaseWSClient {
         return {success: res.success, errorMessage: res.errorMessage, result: res.result} as ExecuteActionAnswer;
     }
 
-    async makeProject(cleanMake: boolean): Promise<MakeProjectAnswer> {
-        const _params : MakeProject = {cleanMake};
-        const res = await this.client.call('MakeProject', _params) as MakeProjectAnswerWithMetadata;
-        return {messages: res.messages, success: res.success, message: res.message} as MakeProjectAnswer;
-    }
-
     async createIntentionsBlock(node: NodeReference): Promise<CreateIntentionsBlockAnswer> {
         const _params : CreateIntentionsBlock = {node};
         const res = await this.client.call('CreateIntentionsBlock', _params) as CreateIntentionsBlockAnswerWithMetadata;
@@ -88,6 +82,12 @@ export class MPSServerClientGen extends BaseWSClient {
     async executeIntention(blockUUID: UUID, index: number): Promise<void> {
         const _params : ExecuteIntention = {blockUUID, index};
         await this.client.notify('ExecuteIntention', _params);
+    }
+
+    async makeProject(cleanMake: boolean): Promise<MakeProjectAnswer> {
+        const _params : MakeProject = {cleanMake};
+        const res = await this.client.call('MakeProject', _params) as MakeProjectAnswerWithMetadata;
+        return {messages: res.messages, success: res.success, message: res.message} as MakeProjectAnswer;
     }
 
     async openProject(projectPath: string): Promise<DoneAnswerMessage> {
