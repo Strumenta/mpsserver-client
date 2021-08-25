@@ -8,7 +8,7 @@ import {
     ModelixCheckoutTransientModule,
     ModelixCheckoutTransientProject,
     ModelixCleanTransient,
-    ModelixResetModelServer, PropertyValue
+    ModelixResetModelServer
 } from "./messages";
 import { NodeReference } from "./messages";
 import { CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata } from "./messages";
@@ -53,6 +53,7 @@ import {
     PropertyChanged,
     ReferenceChanged
 } from "./notifications";
+import {PropertyValue} from "./base";
 
 export class MPSServerClient extends BaseWSClient {
     async createIntentionsBlock(node: NodeReference): Promise<CreateIntentionsBlockAnswer> {
