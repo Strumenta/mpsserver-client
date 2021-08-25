@@ -3,9 +3,10 @@ import {MPSServerClient} from "../src";
 import WebSocket from 'ws';
 import {ErrorsForModelReported, NodeAdded, NodeRemoved} from "../src/notifications";
 import {SimpleWSServer} from "./support";
+import * as assert from "assert";
 
 describe('subscriptions', () => {
-    it('add node', done => {
+    it('add node', async () => {
         const wsServer = new SimpleWSServer(9000, {
             "rpc.on": (data, socket) => {
                 socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
@@ -36,41 +37,36 @@ describe('subscriptions', () => {
 
         const client = new MPSServerClient(wsServer.url());
         const onNodeAddedReceived : NodeAdded[] = [];
-        client.connect(500).then(res1 => {
-            client.registerForModelChanges("mymodel.foo.bar", {
-                onNodeAdded: (notification) => {
-                   onNodeAddedReceived.push(notification);
-                }
-            }).then( res2 => {
-                wsServer.close();
-                expect(onNodeAddedReceived.length === 1);
-                expect(onNodeAddedReceived[0] === {
-                    type: "NodeAdded",
-                    parentNodeId :{
-                        regularId: "nodeID-123"
-                    },
-                    child: {
-                        abstractConcept: false,
-                        children: [],
-                        concept: "myconcept",
-                        conceptAlias:"my",
-                        containingLink: "myparentlink",
-                        id: "nodeID-234",
-                        interfaceConcept: false,
-                        name: "MyNode",
-                        properties: {},
-                        refs: {}
-                    },
-                    index: 2,
-                    relationName: "foos"
-                } as NodeAdded);
-                done();
-            });
-        }).catch(err => {
-            done(`failed because not connected ${err}`)
+        await client.connect(500);
+        const res = await client.registerForModelChanges("mymodel.foo.bar", {
+            onNodeAdded: (notification) => {
+               onNodeAddedReceived.push(notification);
+            }
         });
+        wsServer.close();
+        assert.deepEqual(onNodeAddedReceived.length, 1);
+        assert.deepEqual(onNodeAddedReceived[0], {
+            type: "NodeAdded",
+            parentNodeId :{
+                regularId: "nodeID-123"
+            },
+            child: {
+                abstractConcept: false,
+                children: [],
+                concept: "myconcept",
+                conceptAlias:"my",
+                containingLink: "myparentlink",
+                id: "nodeID-234",
+                interfaceConcept: false,
+                name: "MyNode",
+                properties: {},
+                refs: {}
+            },
+            index: 2,
+            relationName: "foos"
+        } as NodeAdded);
     });
-    it('remove node', done => {
+    it('remove node', async () => {
         const wsServer = new SimpleWSServer(9000, {
             "rpc.on": (data, socket) => {
                 socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
@@ -101,41 +97,36 @@ describe('subscriptions', () => {
 
         const client = new MPSServerClient(wsServer.url());
         const received : NodeRemoved[] = [];
-        client.connect(500).then(res1 => {
-            client.registerForModelChanges("mymodel.foo.bar", {
-                onNodeRemoved: (notification) => {
-                    received.push(notification);
-                }
-            }).then( res2 => {
-                wsServer.close();
-                expect(received.length === 1);
-                expect(received[0] === {
-                    type: "NodeRemoved",
-                    parentNodeId :{
-                        regularId: "nodeID-123"
-                    },
-                    child: {
-                        abstractConcept: false,
-                        children: [],
-                        concept: "myconcept",
-                        conceptAlias:"my",
-                        containingLink: "myparentlink",
-                        id: "nodeID-234",
-                        interfaceConcept: false,
-                        name: "MyNode",
-                        properties: {},
-                        refs: {}
-                    },
-                    index: 2,
-                    relationName: "foos"
-                } as NodeRemoved);
-                done();
-            });
-        }).catch(err => {
-            done(`failed because not connected ${err}`)
+        await client.connect(500)
+        await client.registerForModelChanges("mymodel.foo.bar", {
+            onNodeRemoved: (notification) => {
+                received.push(notification);
+            }
         });
+        wsServer.close();
+        assert.deepEqual(received.length, 1);
+        assert.deepEqual(received[0], {
+            type: "NodeRemoved",
+            parentNodeId :{
+                regularId: "nodeID-123"
+            },
+            child: {
+                abstractConcept: false,
+                children: [],
+                concept: "myconcept",
+                conceptAlias:"my",
+                containingLink: "myparentlink",
+                id: "nodeID-234",
+                interfaceConcept: false,
+                name: "MyNode",
+                properties: {},
+                refs: {}
+            },
+            index: 2,
+            relationName: "foos"
+        } as NodeRemoved);
     });
-    it('errors for model reported', done => {
+    it('errors for model reported', async () => {
         const wsServer = new SimpleWSServer(9000, { "rpc.on": (data, socket) => {
             socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
 
@@ -157,31 +148,26 @@ describe('subscriptions', () => {
 
         const client = new MPSServerClient(wsServer.url());
         const received : ErrorsForModelReported[] = [];
-        client.connect(500).then(res1 => {
-            client.registerForModelChanges("mymodel.foo.bar", {
-                onErrorsForModelReported: (notification) => {
-                    received.push(notification);
-                }
-            }).then( res2 => {
-                wsServer.close();
-                expect(received.length === 1);
-                expect(received[0] === {
-                    type: "ErrorsForModelReported",
-                    issues: [
-                        {
-                            node: {
-                                regularId: "nodeId-789"
-                            },
-                            severity: "error",
-                            message: "An error was found"
-                        }
-                    ],
-                    model: "mymodel.foo.bar"
-                } as ErrorsForModelReported);
-                done();
-            });
-        }).catch(err => {
-            done(`failed because not connected ${err}`)
+        await client.connect(500);
+        await client.registerForModelChanges("mymodel.foo.bar", {
+            onErrorsForModelReported: (notification) => {
+                received.push(notification);
+            }
         });
+        wsServer.close();
+        assert.deepEqual(received.length, 1);
+        assert.deepEqual(received[0],  {
+            type: "ErrorsForModelReported",
+            issues: [
+                {
+                    node: {
+                        regularId: "nodeId-789"
+                    },
+                    severity: "error",
+                    message: "An error was found"
+                }
+            ],
+            model: "mymodel.foo.bar"
+        } as ErrorsForModelReported);
     });
 });
