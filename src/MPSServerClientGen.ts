@@ -1,6 +1,6 @@
 import { BaseWSClient } from "./BaseWSClient";
 import { PropertyValue } from "./base";
-import { AddChild, AddChildAnswerWithMetadata, AnswerAlternativesItem, AnswerAlternativesWithMetadata, AnswerDefaultInsertionWithMetadata, AnswerForDirectReferencesWithMetadata, AnswerForWrappingReferencesWithMetadata, AnswerPropertyChange, AnswerPropertyChangeWithMetadata, AskAlternatives, AskErrorsForNode, CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata, CreateRoot, DefaultInsertion, DeleteIntentionsBlock, DeleteNode, DirAlternative, DoneAnswerMessage, DoneAnswerMessageWithMetadata, ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata, ExecuteIntention, GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata, GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata, GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata, GetNode, GetNodeAnswerWithMetadata, GetProjectInfo, GetProjectInfoAnswerWithMetadata, GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata, InsertNextSibling, InstantiateConcept, MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata, ModelInfo, ModelixCheckoutTransientModule, ModelixCheckoutTransientProject, ModelixCleanTransient, ModelixResetModelServer, NewProject, NodeIDInfo, NodeInfoDetailed, NodeReference, OpenProject, ReferenceChange, RegularNodeIDInfo, RequestForDirectReferences, RequestForPropertyChange, RequestForWrappingReferences, SetChild, Status, StatusAnswerWithMetadata, UUID, WraAlternative } from "./messages";
+import { AddChild, AddChildAnswerWithMetadata, AnswerAlternativesItem, AnswerAlternativesWithMetadata, AnswerDefaultInsertionWithMetadata, AnswerForDirectReferencesWithMetadata, AnswerForWrappingReferencesWithMetadata, AnswerPropertyChange, AnswerPropertyChangeWithMetadata, AskAlternatives, AskErrorsForNode, CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata, CreateRoot, DefaultInsertion, DeleteIntentionsBlock, DeleteNode, DirAlternative, DoneAnswerMessage, DoneAnswerMessageWithMetadata, ErrorsForModelReport, ErrorsForNodeReport, ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata, ExecuteIntention, GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata, GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata, GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata, GetNode, GetNodeAnswerWithMetadata, GetProjectInfo, GetProjectInfoAnswerWithMetadata, GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata, InsertNextSibling, InstantiateConcept, MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata, ModelInfo, ModelixCheckoutTransientModule, ModelixCheckoutTransientProject, ModelixCleanTransient, ModelixResetModelServer, NewProject, NodeAdded, NodeIDInfo, NodeInfoDetailed, NodeReference, NodeRemoved, OpenProject, PropertyChange, ReferenceChange, ReferenceChanged, RegisterForChangesListener, RegisterForChangesNotification, RegularNodeIDInfo, RequestForDirectReferences, RequestForPropertyChange, RequestForWrappingReferences, SetChild, Status, StatusAnswerWithMetadata, UUID, WraAlternative } from "./messages";
 
 export class MPSServerClientGen extends BaseWSClient {
     async executeAction(node: NodeReference, action: string, params: {[key:string]:string}): Promise<ExecuteActionAnswer> {
@@ -148,9 +148,44 @@ export class MPSServerClientGen extends BaseWSClient {
         await this.client.notify('AskErrorsForNode', _params);
     }
 
-    async registerForRegisterForChanges(modelName: string, listener: RegisterForChangesListener = {}): Promise<void> {
-        await this.connect();
-    }
+    async registerForChanges(modelName: string, listener: RegisterForChangesListener = {}): Promise<void> {
+    await this.connect();
+    this.client.addListener("RegisterForChanges", (eventData: RegisterForChangesNotification) => {
+        if (eventData.type === "PropertyChange") {
+            if (listener.onPropertyChange != null) {
+                listener.onPropertyChange(eventData as PropertyChange);
+            }
+        }
+        else if (eventData.type === "ReferenceChanged") {
+            if (listener.onReferenceChanged != null) {
+                listener.onReferenceChanged(eventData as ReferenceChanged);
+            }
+        }
+        else if (eventData.type === "NodeAdded") {
+            if (listener.onNodeAdded != null) {
+                listener.onNodeAdded(eventData as NodeAdded);
+            }
+        }
+        else if (eventData.type === "NodeRemoved") {
+            if (listener.onNodeRemoved != null) {
+                listener.onNodeRemoved(eventData as NodeRemoved);
+            }
+        }
+        else if (eventData.type === "ErrorsForModelReport") {
+            if (listener.onErrorsForModelReport != null) {
+                listener.onErrorsForModelReport(eventData as ErrorsForModelReport);
+            }
+        }
+        else if (eventData.type === "ErrorsForNodeReport") {
+            if (listener.onErrorsForNodeReport != null) {
+                listener.onErrorsForNodeReport(eventData as ErrorsForNodeReport);
+            }
+        }
+        else
+            throw new Error(`unknown RegisterForChanges notification type: ${eventData.type as string}`);
+    });
+    await this.client.subscribe(["RegisterForChanges", modelName]);
+}
 
     async openProject(projectPath: string): Promise<DoneAnswerMessage> {
         await this.connect();

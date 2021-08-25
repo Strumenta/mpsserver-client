@@ -31,14 +31,14 @@ describe('subscriptions', () => {
                     index: 2,
                     relationName: "foos"
                 } as NodeAdded;
-                socket.send(JSON.stringify({"notification": "modelChanges", "params": nodeAdded}));
+                socket.send(JSON.stringify({"notification": "RegisterForChanges", "params": nodeAdded}));
             }
         });
 
         const client = new MPSServerClient(wsServer.url());
         const onNodeAddedReceived : NodeAdded[] = [];
         await client.connect(500);
-        await client.registerForModelChanges("mymodel.foo.bar", {
+        await client.registerForChanges("mymodel.foo.bar", {
             onNodeAdded: (notification) => {
                onNodeAddedReceived.push(notification);
             }
@@ -95,13 +95,13 @@ describe('subscriptions', () => {
                     index: 2,
                     relationName: "foos"
                 } as NodeAdded;
-                socket.send(JSON.stringify({"notification": "modelChanges", "params": nodeAdded}));
+                socket.send(JSON.stringify({"notification": "RegisterForChanges", "params": nodeAdded}));
             }
         });
 
         const client = new MPSServerClient(wsServer.url());
         const onNodeAddedReceived : NodeAdded[] = [];
-        await client.registerForModelChanges("mymodel.foo.bar", {
+        await client.registerForChanges("mymodel.foo.bar", {
             onNodeAdded: (notification) => {
                 onNodeAddedReceived.push(notification);
             }
@@ -158,14 +158,14 @@ describe('subscriptions', () => {
                     index: 2,
                     relationName: "foos"
                 } as NodeRemoved;
-                socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
+                socket.send(JSON.stringify({"notification": "RegisterForChanges", "params": event}));
             }
         });
 
         const client = new MPSServerClient(wsServer.url());
         const received : NodeRemoved[] = [];
         await client.connect(500)
-        await client.registerForModelChanges("mymodel.foo.bar", {
+        await client.registerForChanges("mymodel.foo.bar", {
             onNodeRemoved: (notification) => {
                 received.push(notification);
             }
@@ -212,13 +212,13 @@ describe('subscriptions', () => {
                 ],
                 model: "mymodel.foo.bar"
             } as ErrorsForModelReport;
-            socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
+            socket.send(JSON.stringify({"notification": "RegisterForChanges", "params": event}));
         }});
 
         const client = new MPSServerClient(wsServer.url());
         const received : ErrorsForModelReport[] = [];
         await client.connect(500);
-        await client.registerForModelChanges("mymodel.foo.bar", {
+        await client.registerForChanges("mymodel.foo.bar", {
             onErrorsForModelReport: (notification) => {
                 received.push(notification);
             }
