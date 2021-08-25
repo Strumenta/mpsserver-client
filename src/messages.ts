@@ -1,4 +1,4 @@
-export type PropertyValue = string | number | boolean;
+import {PropertyValue} from "./base";
 
 export interface CreateIntentionsBlockWithMetadata {
   node: NodeReference
