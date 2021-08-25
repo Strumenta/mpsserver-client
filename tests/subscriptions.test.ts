@@ -136,36 +136,26 @@ describe('subscriptions', () => {
         });
     });
     it('errors for model reported', done => {
-        const wss = new WebSocket.Server({
-            port: 9000
-        });
-        const fakeURL = 'ws://localhost:9000';
+        const wsServer = new SimpleWSServer(9000, { "rpc.on": (data, socket) => {
+            socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
 
-        wss.on('connection', socket => {
-            socket.on('message', (datatxt: string) => {
-                const data = JSON.parse(datatxt);
-                if (data.method === 'rpc.on') {
-                    socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
+            const event : ErrorsForModelReported = {
+                type: "ErrorsForModelReported",
+                issues: [
+                    {
+                        node: {
+                            regularId: "nodeId-789"
+                        },
+                        severity: "error",
+                        message: "An error was found"
+                    }
+                ],
+                model: "mymodel.foo.bar"
+            } as ErrorsForModelReported;
+            socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
+        }});
 
-                    const event : ErrorsForModelReported = {
-                        type: "ErrorsForModelReported",
-                        issues: [
-                            {
-                                node: {
-                                    regularId: "nodeId-789"
-                                },
-                                severity: "error",
-                                message: "An error was found"
-                            }
-                        ],
-                        model: "mymodel.foo.bar"
-                    } as ErrorsForModelReported;
-                    socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
-                }
-            });
-        });
-
-        const client = new MPSServerClient(fakeURL);
+        const client = new MPSServerClient(wsServer.url());
         const received : ErrorsForModelReported[] = [];
         client.connect(500).then(res1 => {
             client.registerForModelChanges("mymodel.foo.bar", {
@@ -173,7 +163,7 @@ describe('subscriptions', () => {
                     received.push(notification);
                 }
             }).then( res2 => {
-                wss.close();
+                wsServer.close();
                 expect(received.length === 1);
                 expect(received[0] === {
                     type: "ErrorsForModelReported",
