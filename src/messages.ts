@@ -77,7 +77,7 @@ export interface GetIntentionsBlockAnswer {
 
 export interface Result {
   success: boolean
-  explanation: string
+  explanation?: string
 }
 
 export interface ExecuteIntentionWithMetadata {
