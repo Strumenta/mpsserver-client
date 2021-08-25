@@ -161,188 +161,33 @@ export interface LogMessage {
 }
 
 //
-// messages for group Projects
-//
-
-export interface OpenProjectWithMetadata {
-  projectPath: string
-  requestId: string
-  type: string
-}
-
-export interface OpenProject {
-  projectPath: string
-}
-
-export interface DoneAnswerMessageWithMetadata {
-  success: boolean
-  message: string
-  requestId: string
-  type: string
-}
-
-export interface DoneAnswerMessage {
-  success: boolean
-  message: string
-}
-
-export interface NewProjectWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type NewProject = Record<string, unknown>
-
-export interface GetProjectInfoWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type GetProjectInfo = Record<string, unknown>
-
-export interface GetProjectInfoAnswerWithMetadata {
-  projectName: string
-  requestId: string
-  type: string
-}
-
-export interface GetProjectInfoAnswer {
-  projectName: string
-}
-
-//
-// messages for group Status
-//
-
-export interface StatusWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type Status = Record<string, unknown>
-
-export interface StatusAnswerWithMetadata {
-  description: string
-  requestId: string
-  type: string
-}
-
-export interface StatusAnswer {
-  description: string
-}
-
-export interface GetModulesStatusWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type GetModulesStatus = Record<string, unknown>
-
-export interface GetModulesStatusAnswerWithMetadata {
-  repoAvailable: boolean
-  modules: ModuleStatus[]
-  requestId: string
-  type: string
-}
-
-export interface GetModulesStatusAnswer {
-  repoAvailable: boolean
-  modules: ModuleStatus[]
-}
-
-export interface ModuleStatus {
-  name: string
-  deployed: boolean
-  canBeDeployed: boolean
-  reloadable: boolean
-  dependenciesNotFound: string[]
-  undeployableDependencies: string[]
-}
-
-export interface GetModuleInfoWithMetadata {
-  moduleName: string
-  requestId: string
-  type: string
-}
-
-export interface GetModuleInfo {
-  moduleName: string
-}
-
-export interface GetModuleInfoAnswerWithMetadata {
-  models: ModelInfo[]
-  requestId: string
-  type: string
-}
-
-export interface GetModuleInfoAnswer {
-  models: ModelInfo[]
-}
-
-export interface ModelInfo {
-  qualifiedName: string
-  uuid: UUID
-  foreignName: string
-  intValue: number
-  readOnly: boolean
-}
-
-//
-// messages for group ModelixIntegration
-//
-
-export interface ModelixCleanTransientWithMetadata {
-  requestId: string
-  type: string
-}
-
-export type ModelixCleanTransient = Record<string, unknown>
-
-export interface ModelixCheckoutTransientProjectWithMetadata {
-  projectName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-  requestId: string
-  type: string
-}
-
-export interface ModelixCheckoutTransientProject {
-  projectName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-}
-
-export interface ModelixCheckoutTransientModuleWithMetadata {
-  moduleName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-  requestId: string
-  type: string
-}
-
-export interface ModelixCheckoutTransientModule {
-  moduleName: string
-  repositoryId: string
-  versionId: number
-  modelServerUrl: string
-}
-
-export interface ModelixResetModelServerWithMetadata {
-  modelServerUrl: string
-  requestId: string
-  type: string
-}
-
-export interface ModelixResetModelServer {
-  modelServerUrl: string
-}
-
-//
 // messages for group Nodes
 //
+
+export interface RegisterForChangesListener {
+  onPropertyChange?: OnPropertyChange
+  onReferenceChanged?: OnReferenceChanged
+  onNodeAdded?: OnNodeAdded
+  onNodeRemoved?: OnNodeRemoved
+  onErrorsForModelReport?: OnErrorsForModelReport
+  onErrorsForNodeReport?: OnErrorsForNodeReport
+}
+
+type OnPropertyChange = (event: PropertyChange) => void;
+type OnReferenceChanged = (event: ReferenceChanged) => void;
+type OnNodeAdded = (event: NodeAdded) => void;
+type OnNodeRemoved = (event: NodeRemoved) => void;
+type OnErrorsForModelReport = (event: ErrorsForModelReport) => void;
+type OnErrorsForNodeReport = (event: ErrorsForNodeReport) => void;
+
+export interface RegisterForChangesNotification {
+  type: "PropertyChange"
+      | "ReferenceChanged"
+      | "NodeAdded"
+      | "NodeRemoved"
+      | "ErrorsForModelReport"
+      | "ErrorsForNodeReport"
+}
 
 export interface RequestForPropertyChangeWithMetadata {
   node: NodeReference
@@ -372,10 +217,32 @@ export interface RegisterForChangesWithMetadata {
 
 export type RegisterForChanges = Record<string, unknown>
 
+export interface PropertyChange extends RegisterForChangesNotification {
+  type: "PropertyChange"
+  node: NodeReference
+  propertyName: string
+  propertyValue: PropertyValue
+}
+
+export interface ReferenceChanged extends RegisterForChangesNotification {
+  type: "ReferenceChanged"
+  node: NodeReference
+  referenceName: string
+  referenceValue: NodeReference
+}
+
+export interface NodeAdded extends RegisterForChangesNotification {
+  type: "NodeAdded"
+  parentNodeId: NodeIDInfo
+  child: NodeInfoDetailed
+  index: number
+  relationName: string
+}
+
 export interface NodeInfoDetailed {
   containingLink: string
   children: NodeInfoDetailed[]
-  properties: {[key:string]:any}
+  properties: {[key:string]:unknown}
   refs: {[key:string]:ReferenceInfo}
   id: NodeIDInfo
   name: string
@@ -390,6 +257,39 @@ export interface ReferenceInfo {
   model: ModelInfo
 }
 
+export interface ModelInfo {
+  qualifiedName: string
+  uuid: UUID
+  foreignName: string
+  intValue: number
+  readOnly: boolean
+}
+
+export interface NodeRemoved extends RegisterForChangesNotification {
+  type: "NodeRemoved"
+  parentNodeId: NodeIDInfo
+  child: NodeInfoDetailed
+  index: number
+  relationName: string
+}
+
+export interface ErrorsForModelReport extends RegisterForChangesNotification {
+  type: "ErrorsForModelReport"
+  model: string
+  issues: IssueDescription[]
+}
+
+export interface IssueDescription {
+  message: string
+  severity: string
+  node: NodeIDInfo
+}
+
+export interface ErrorsForNodeReport extends RegisterForChangesNotification {
+  type: "ErrorsForNodeReport"
+  rootNode: NodeReference
+  issues: IssueDescription[]
+}
 
 export interface GetInstancesOfConceptWithMetadata {
   modelName: string
@@ -653,14 +553,14 @@ export interface ReferenceChange {
 export interface CreateRootWithMetadata {
   modelName: string
   conceptName: string
-  propertiesValues: {[key:string]:any}
+  propertiesValues: {[key:string]:PropertyValue}
   type: string
 }
 
 export interface CreateRoot {
   modelName: string
   conceptName: string
-  propertiesValues: {[key:string]:any}
+  propertiesValues: {[key:string]:PropertyValue}
 }
 
 export interface AskErrorsForNodeWithMetadata {
@@ -690,8 +590,174 @@ export interface GetNodeAnswer {
   nodeData: NodeInfoDetailed
 }
 
-export interface IssueDescription {
+//
+// messages for group Projects
+//
+
+export interface OpenProjectWithMetadata {
+  projectPath: string
+  requestId: string
+  type: string
+}
+
+export interface OpenProject {
+  projectPath: string
+}
+
+export interface DoneAnswerMessageWithMetadata {
+  success: boolean
   message: string
-  severity: string
-  node: NodeIDInfo
+  requestId: string
+  type: string
+}
+
+export interface DoneAnswerMessage {
+  success: boolean
+  message: string
+}
+
+export interface NewProjectWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type NewProject = Record<string, unknown>
+
+export interface GetProjectInfoWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type GetProjectInfo = Record<string, unknown>
+
+export interface GetProjectInfoAnswerWithMetadata {
+  projectName: string
+  requestId: string
+  type: string
+}
+
+export interface GetProjectInfoAnswer {
+  projectName: string
+}
+
+//
+// messages for group Status
+//
+
+export interface StatusWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type Status = Record<string, unknown>
+
+export interface StatusAnswerWithMetadata {
+  description: string
+  requestId: string
+  type: string
+}
+
+export interface StatusAnswer {
+  description: string
+}
+
+export interface GetModulesStatusWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type GetModulesStatus = Record<string, unknown>
+
+export interface GetModulesStatusAnswerWithMetadata {
+  repoAvailable: boolean
+  modules: ModuleStatus[]
+  requestId: string
+  type: string
+}
+
+export interface GetModulesStatusAnswer {
+  repoAvailable: boolean
+  modules: ModuleStatus[]
+}
+
+export interface ModuleStatus {
+  name: string
+  deployed: boolean
+  canBeDeployed: boolean
+  reloadable: boolean
+  dependenciesNotFound: string[]
+  undeployableDependencies: string[]
+}
+
+export interface GetModuleInfoWithMetadata {
+  moduleName: string
+  requestId: string
+  type: string
+}
+
+export interface GetModuleInfo {
+  moduleName: string
+}
+
+export interface GetModuleInfoAnswerWithMetadata {
+  models: ModelInfo[]
+  requestId: string
+  type: string
+}
+
+export interface GetModuleInfoAnswer {
+  models: ModelInfo[]
+}
+
+//
+// messages for group ModelixIntegration
+//
+
+export interface ModelixCleanTransientWithMetadata {
+  requestId: string
+  type: string
+}
+
+export type ModelixCleanTransient = Record<string, unknown>
+
+export interface ModelixCheckoutTransientProjectWithMetadata {
+  projectName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixCheckoutTransientProject {
+  projectName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+}
+
+export interface ModelixCheckoutTransientModuleWithMetadata {
+  moduleName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixCheckoutTransientModule {
+  moduleName: string
+  repositoryId: string
+  versionId: number
+  modelServerUrl: string
+}
+
+export interface ModelixResetModelServerWithMetadata {
+  modelServerUrl: string
+  requestId: string
+  type: string
+}
+
+export interface ModelixResetModelServer {
+  modelServerUrl: string
 }

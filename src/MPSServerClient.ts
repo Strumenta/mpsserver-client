@@ -45,14 +45,15 @@ import { ReferenceChange } from "./messages";
 import { CreateRoot } from "./messages";
 import { AskErrorsForNode } from "./messages";
 import {
-    ErrorsForModelReported, ErrorsForNodeReported,
-    ModelChangesNotification,
-    ModelListener,
+    ErrorsForModelReport,
+    ErrorsForNodeReport,
+    RegisterForChangesNotification,
+    RegisterForChangesListener,
     NodeAdded,
     NodeRemoved,
-    PropertyChanged,
+    PropertyChange,
     ReferenceChanged
-} from "./notifications";
+} from "./messages";
 import {PropertyValue} from "./base";
 
 export class MPSServerClient extends BaseWSClient {
@@ -271,9 +272,9 @@ export class MPSServerClient extends BaseWSClient {
         await this.client.notify('AskErrorsForNode', _params);
     }
 
-    async registerForModelChanges(modelName: string, modelListener: ModelListener = {}) : Promise<void> {
+    async registerForModelChanges(modelName: string, modelListener: RegisterForChangesListener = {}) : Promise<void> {
         await this.connect();
-        this.client.addListener("modelChanges", (eventData: ModelChangesNotification)=>{
+        this.client.addListener("modelChanges", (eventData: RegisterForChangesNotification)=>{
             if (eventData.type === "NodeAdded") {
                 if (modelListener.onNodeAdded != null) {
                     modelListener.onNodeAdded(eventData as NodeAdded);
@@ -282,21 +283,21 @@ export class MPSServerClient extends BaseWSClient {
                 if (modelListener.onNodeRemoved != null) {
                     modelListener.onNodeRemoved(eventData as NodeRemoved);
                 }
-            } else if (eventData.type === "PropertyChanged") {
-                if (modelListener.onPropertyChanged != null) {
-                    modelListener.onPropertyChanged(eventData as PropertyChanged);
+            } else if (eventData.type === "PropertyChange") {
+                if (modelListener.onPropertyChange != null) {
+                    modelListener.onPropertyChange(eventData as PropertyChange);
                 }
             } else if (eventData.type === "ReferenceChanged") {
                 if (modelListener.onReferenceChanged != null) {
                     modelListener.onReferenceChanged(eventData as ReferenceChanged);
                 }
-            } else if (eventData.type === "ErrorsForModelReported") {
-                if (modelListener.onErrorsForModelReported != null) {
-                    modelListener.onErrorsForModelReported(eventData as ErrorsForModelReported);
+            } else if (eventData.type === "ErrorsForModelReport") {
+                if (modelListener.onErrorsForModelReport != null) {
+                    modelListener.onErrorsForModelReport(eventData as ErrorsForModelReport);
                 }
-            } else if (eventData.type === "ErrorsForNodeReported") {
-                if (modelListener.onErrorsForNodeReported != null) {
-                    modelListener.onErrorsForNodeReported(eventData as ErrorsForNodeReported);
+            } else if (eventData.type === "ErrorsForNodeReport") {
+                if (modelListener.onErrorsForNodeReport != null) {
+                    modelListener.onErrorsForNodeReport(eventData as ErrorsForNodeReport);
                 }
             } else {
                 throw new Error(`unknown ModelChanges notification type: ${eventData.type as string}`);

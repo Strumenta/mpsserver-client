@@ -6,6 +6,9 @@ function convertType(xmlType: any, sourceFile: SourceFile | null = null, fieldNa
     if (fieldName === 'propertyValue') {
         return "PropertyValue";
     }
+    if (fieldName === 'propertiesValues') {
+        return "{[key:string]:PropertyValue}";
+    }
     const xmlTypeName = xmlType.attrs.name;
     if (xmlTypeName === 'String') {
         return 'string';
@@ -87,120 +90,151 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
        extends: "BaseWSClient"
     });
 
-    await Promise.all(paths.map(async (path:string) => {
-        return new Promise<void>(async (resolve, reject)  => {
-            const xmlCode: string = await fsPromises.readFile(path, 'utf-8')
-            parseString(xmlCode, {attrkey: 'attrs'}, (err, result: any) => {
-                if (err) {
-                    console.error('There was an error when parsing: ', err);
-                } else {
+    const notificationsToEndpoint : {[key:string]:string} = {};
 
-                    result.wsprotocol.requestEndpoint.forEach((endpoint: any) => {
-                        const requestMsgName = endpoint.attrs.messageType;
-                        const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
-                        const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
-                        const answers = endpoint.answer;
-                        if (answers.length !== 1) {
-                            throw Error("Answers found: " + answers);
-                        }
-                        const answerMsgName = answers[0].attrs.messageType;
-                        const answerMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === answerMsgName);
-                        const answerFields = answerMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
-                        const singleValue = answerFields.length === 1;
-                        const methodName = uncapitalize(requestMsgName);
+    for (const path of paths) {
+        const xmlCode: string = await fsPromises.readFile(path, 'utf-8')
+        parseString(xmlCode, {attrkey: 'attrs'}, (err, result: any) => {
+            if (err) {
+                console.error('There was an error when parsing: ', err);
+            } else {
+                result.wsprotocol.requestEndpoint.forEach((endpoint: any) => {
+                    const requestMsgName = endpoint.attrs.messageType;
+                    const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
+                    const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                    const answers = endpoint.answer;
+                    if (answers.length !== 1) {
+                        throw Error("Answers found: " + answers);
+                    }
+                    const answerMsgName = answers[0].attrs.messageType;
+                    const answerMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === answerMsgName);
+                    const answerFields = answerMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                    const singleValue = answerFields.length === 1;
+                    const methodName = uncapitalize(requestMsgName);
 
-                        if (singleValue) {
-                            client.addImportDeclaration({
-                                namedImports: [requestMsgName, `${answerMsgName}WithMetadata`],
-                                moduleSpecifier: "./messages"
-                            });
-
-                            const singleValueType = convertType(answerFields[0].type[0], client);
-                            clientClass.addMethod({
-                                name: methodName,
-                                isAsync: true,
-                                returnType: `Promise<${singleValueType}>`,
-                                parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
-                                statements: [
-                                    `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
-                                    `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
-                                    `return res.${answerFields[0].attrs.name};`]
-                            })
-                        } else {
-                            client.addImportDeclaration({
-                                namedImports: [requestMsgName, answerMsgName, `${answerMsgName}WithMetadata`],
-                                moduleSpecifier: "./messages"
-                            });
-                            clientClass.addMethod({
-                                name: methodName,
-                                isAsync: true,
-                                returnType: `Promise<${answerMsgName}>`,
-                                parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
-                                statements: [
-                                    `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
-                                    `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
-                                    `return {${answerFields.map((f: any) => `${f.attrs.name}: res.${f.attrs.name}`).join(", ")}} as ${answerMsgName};`]
-                            })
-                        }
-                    });
-
-                    (result.wsprotocol.commandEndpoint || []).forEach((endpoint: any) => {
-                        // console.log("endpoint", JSON.stringify(endpoint, null, 2));
-                        const requestMsgName = endpoint.attrs.messageType;
-                        const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
-                        const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
-                        const methodName = uncapitalize(requestMsgName);
-
-
+                    if (singleValue) {
                         client.addImportDeclaration({
-                            namedImports: [requestMsgName],
+                            namedImports: [requestMsgName, `${answerMsgName}WithMetadata`],
+                            moduleSpecifier: "./messages"
+                        });
+
+                        const singleValueType = convertType(answerFields[0].type[0], client);
+                        clientClass.addMethod({
+                            name: methodName,
+                            isAsync: true,
+                            returnType: `Promise<${singleValueType}>`,
+                            parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                            statements: [
+                                `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
+                                `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
+                                `return res.${answerFields[0].attrs.name};`]
+                        })
+                    } else {
+                        client.addImportDeclaration({
+                            namedImports: [requestMsgName, answerMsgName, `${answerMsgName}WithMetadata`],
                             moduleSpecifier: "./messages"
                         });
                         clientClass.addMethod({
                             name: methodName,
                             isAsync: true,
-                            returnType: `Promise<void>`,
+                            returnType: `Promise<${answerMsgName}>`,
                             parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
                             statements: [
                                 `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
-                                `await this.client.notify('${requestMsgName}', _params);`]
+                                `const res = await this.client.call('${requestMsgName}', _params) as ${answerMsgName}WithMetadata;`,
+                                `return {${answerFields.map((f: any) => `${f.attrs.name}: res.${f.attrs.name}`).join(", ")}} as ${answerMsgName};`]
                         })
+                    }
+                });
+
+                (result.wsprotocol.commandEndpoint || []).forEach((endpoint: any) => {
+                    // console.log("endpoint", JSON.stringify(endpoint, null, 2));
+                    const requestMsgName = endpoint.attrs.messageType;
+                    const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
+                    const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
+                    const methodName = uncapitalize(requestMsgName);
+
+
+                    client.addImportDeclaration({
+                        namedImports: [requestMsgName],
+                        moduleSpecifier: "./messages"
                     });
-
-                    gen += "//\n";
-                    gen += `// messages for group ${result.wsprotocol.attrs.name}\n`;
-                    gen += "//\n\n";
-
-                    result.wsprotocol.message.forEach((message: any) => {
-
-                        const name = message.attrs.name;
-                        const fields = message.field || [];
-
-                        if (knownTypes.indexOf(name) === -1) {
-                            knownTypes.push(name);
-                            if (fields.length === 0) {
-                                gen += codeForEmptyInterface(name);
-                            } else if (hasMetadata(message)) {
-                                gen += generateInterface(`${name}WithMetadata`, fields);
-
-                                if (hasOnlyMetadata(message)) {
-                                    gen += codeForEmptyInterface(name);
-                                } else {
-                                    gen += generateInterface(name, fields,
-                                        ['requestId', 'type']);
-                                }
-                            } else {
-                                gen += generateInterface(name, fields);
-                            }
-                        }
+                    clientClass.addMethod({
+                        name: methodName,
+                        isAsync: true,
+                        returnType: `Promise<void>`,
+                        parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                        statements: [
+                            `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
+                            `await this.client.notify('${requestMsgName}', _params);`]
                     })
+                });
 
-                }
-                //console.log("resolving for", path);
-                resolve();
-            });
+
+                gen += "//\n";
+                gen += `// messages for group ${result.wsprotocol.attrs.name}\n`;
+                gen += "//\n\n";
+
+                (result.wsprotocol.registrationEndpoint || []).forEach((endpoint: any) => {
+                    gen += `export interface ${endpoint.attrs.messageType}Listener {\n`;
+                    (endpoint.notification || []).forEach((notification:any) => {
+                       notificationsToEndpoint[notification.attrs.messageType] = endpoint.attrs.messageType;
+                       gen += `  on${notification.attrs.messageType}?: On${notification.attrs.messageType}\n`;
+                    });
+                    gen += "}\n\n";
+
+                    (endpoint.notification || []).forEach((notification:any) => {
+                        gen += `type On${notification.attrs.messageType} = (event: ${notification.attrs.messageType}) => void;\n`;
+                    });
+                    gen += '\n';
+
+                    gen += `export interface ${endpoint.attrs.messageType}Notification {\n`;
+                    gen += `  type: "${endpoint.notification[0].attrs.messageType}"\n`;
+                    endpoint.notification.slice(1).forEach((notification:any) => {
+                        gen += `      | "${notification.attrs.messageType}"\n`;
+                    });
+                    gen += "}\n\n";
+                });
+
+                result.wsprotocol.message.forEach((message: any) => {
+
+                    const name = message.attrs.name;
+                    const fields = message.field || [];
+
+
+                    if (knownTypes.indexOf(name) === -1) {
+                        knownTypes.push(name);
+                        if (message.attrs.type === 'notification') {
+                            gen += `export interface ${message.attrs.name} extends ${notificationsToEndpoint[message.attrs.name]}Notification {\n`;
+                            gen += `  type: "${message.attrs.name}"\n`;
+                            message.field.forEach((field:any)=>{
+                                const fieldName = field.attrs.name;
+                                if (fieldName !== 'type') {
+                                    const type = convertType(field.type[0], null, fieldName);
+                                    gen += `  ${field.attrs.name}: ${type}\n`;
+                                }
+                            });
+                            gen += '}\n\n';
+                        } else if (fields.length === 0) {
+                            gen += codeForEmptyInterface(name);
+                        } else if (hasMetadata(message)) {
+                            gen += generateInterface(`${name}WithMetadata`, fields);
+
+                            if (hasOnlyMetadata(message)) {
+                                gen += codeForEmptyInterface(name);
+                            } else {
+                                gen += generateInterface(name, fields,
+                                    ['requestId', 'type']);
+                            }
+                        } else {
+                            gen += generateInterface(name, fields);
+                        }
+                    }
+                })
+
+            }
         });
-    }));
+    }
 
     clientGen += "}\n";
     //console.log("printing");

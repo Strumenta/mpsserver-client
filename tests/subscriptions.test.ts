@@ -1,5 +1,5 @@
 import {MPSServerClient} from "../src";
-import {ErrorsForModelReported, NodeAdded, NodeRemoved} from "../src/notifications";
+import {ErrorsForModelReport, NodeAdded, NodeRemoved} from "../src/messages";
 import {SimpleWSServer} from "./support";
 import * as assert from "assert";
 
@@ -199,8 +199,8 @@ describe('subscriptions', () => {
         const wsServer = new SimpleWSServer(9000, { "rpc.on": (data, socket) => {
             socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
 
-            const event : ErrorsForModelReported = {
-                type: "ErrorsForModelReported",
+            const event : ErrorsForModelReport = {
+                type: "ErrorsForModelReport",
                 issues: [
                     {
                         node: {
@@ -211,22 +211,22 @@ describe('subscriptions', () => {
                     }
                 ],
                 model: "mymodel.foo.bar"
-            } as ErrorsForModelReported;
+            } as ErrorsForModelReport;
             socket.send(JSON.stringify({"notification": "modelChanges", "params": event}));
         }});
 
         const client = new MPSServerClient(wsServer.url());
-        const received : ErrorsForModelReported[] = [];
+        const received : ErrorsForModelReport[] = [];
         await client.connect(500);
         await client.registerForModelChanges("mymodel.foo.bar", {
-            onErrorsForModelReported: (notification) => {
+            onErrorsForModelReport: (notification) => {
                 received.push(notification);
             }
         });
         wsServer.close();
         assert.deepEqual(received.length, 1);
         assert.deepEqual(received[0],  {
-            type: "ErrorsForModelReported",
+            type: "ErrorsForModelReport",
             issues: [
                 {
                     node: {
@@ -237,6 +237,6 @@ describe('subscriptions', () => {
                 }
             ],
             model: "mymodel.foo.bar"
-        } as ErrorsForModelReported);
+        } as ErrorsForModelReport);
     });
 });

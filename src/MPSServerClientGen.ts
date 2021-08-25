@@ -10,17 +10,6 @@ import { UUID } from "./messages";
 import { ExecuteIntention } from "./messages";
 import { UUID } from "./messages";
 import { MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata } from "./messages";
-import { OpenProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
-import { NewProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
-import { GetProjectInfo, GetProjectInfoAnswerWithMetadata } from "./messages";
-import { Status, StatusAnswerWithMetadata } from "./messages";
-import { GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata } from "./messages";
-import { GetModuleInfo, GetModuleInfoAnswerWithMetadata } from "./messages";
-import { ModelInfo } from "./messages";
-import { ModelixCleanTransient, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
-import { ModelixCheckoutTransientProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
-import { ModelixCheckoutTransientModule, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
-import { ModelixResetModelServer, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
 import { RequestForPropertyChange, AnswerPropertyChange, AnswerPropertyChangeWithMetadata } from "./messages";
 import { NodeReference } from "./messages";
 import { GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata } from "./messages";
@@ -54,6 +43,17 @@ import { NodeReference } from "./messages";
 import { CreateRoot } from "./messages";
 import { AskErrorsForNode } from "./messages";
 import { NodeReference } from "./messages";
+import { OpenProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
+import { NewProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
+import { GetProjectInfo, GetProjectInfoAnswerWithMetadata } from "./messages";
+import { Status, StatusAnswerWithMetadata } from "./messages";
+import { GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata } from "./messages";
+import { GetModuleInfo, GetModuleInfoAnswerWithMetadata } from "./messages";
+import { ModelInfo } from "./messages";
+import { ModelixCleanTransient, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
+import { ModelixCheckoutTransientProject, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
+import { ModelixCheckoutTransientModule, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
+import { ModelixResetModelServer, DoneAnswerMessage, DoneAnswerMessageWithMetadata } from "./messages";
 
 export class MPSServerClientGen extends BaseWSClient {
     async executeAction(node: NodeReference, action: string, params: {[key:string]:string}): Promise<ExecuteActionAnswer> {
@@ -88,66 +88,6 @@ export class MPSServerClientGen extends BaseWSClient {
         const _params : MakeProject = {cleanMake};
         const res = await this.client.call('MakeProject', _params) as MakeProjectAnswerWithMetadata;
         return {messages: res.messages, success: res.success, message: res.message} as MakeProjectAnswer;
-    }
-
-    async openProject(projectPath: string): Promise<DoneAnswerMessage> {
-        const _params : OpenProject = {projectPath};
-        const res = await this.client.call('OpenProject', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async newProject(): Promise<DoneAnswerMessage> {
-        const _params : NewProject = {};
-        const res = await this.client.call('NewProject', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async getProjectInfo(): Promise<string> {
-        const _params : GetProjectInfo = {};
-        const res = await this.client.call('GetProjectInfo', _params) as GetProjectInfoAnswerWithMetadata;
-        return res.projectName;
-    }
-
-    async status(): Promise<string> {
-        const _params : Status = {};
-        const res = await this.client.call('Status', _params) as StatusAnswerWithMetadata;
-        return res.description;
-    }
-
-    async getModulesStatus(): Promise<GetModulesStatusAnswer> {
-        const _params : GetModulesStatus = {};
-        const res = await this.client.call('GetModulesStatus', _params) as GetModulesStatusAnswerWithMetadata;
-        return {repoAvailable: res.repoAvailable, modules: res.modules} as GetModulesStatusAnswer;
-    }
-
-    async getModuleInfo(moduleName: string): Promise<ModelInfo[]> {
-        const _params : GetModuleInfo = {moduleName};
-        const res = await this.client.call('GetModuleInfo', _params) as GetModuleInfoAnswerWithMetadata;
-        return res.models;
-    }
-
-    async modelixCleanTransient(): Promise<DoneAnswerMessage> {
-        const _params : ModelixCleanTransient = {};
-        const res = await this.client.call('ModelixCleanTransient', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async modelixCheckoutTransientProject(projectName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
-        const _params : ModelixCheckoutTransientProject = {projectName, repositoryId, versionId, modelServerUrl};
-        const res = await this.client.call('ModelixCheckoutTransientProject', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async modelixCheckoutTransientModule(moduleName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
-        const _params : ModelixCheckoutTransientModule = {moduleName, repositoryId, versionId, modelServerUrl};
-        const res = await this.client.call('ModelixCheckoutTransientModule', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    async modelixResetModelServer(modelServerUrl: string): Promise<DoneAnswerMessage> {
-        const _params : ModelixResetModelServer = {modelServerUrl};
-        const res = await this.client.call('ModelixResetModelServer', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
     }
 
     async requestForPropertyChange(node: NodeReference, propertyName: string, propertyValue: unknown): Promise<AnswerPropertyChange> {
@@ -237,5 +177,65 @@ export class MPSServerClientGen extends BaseWSClient {
     async askErrorsForNode(rootNode: NodeReference): Promise<void> {
         const _params : AskErrorsForNode = {rootNode};
         await this.client.notify('AskErrorsForNode', _params);
+    }
+
+    async openProject(projectPath: string): Promise<DoneAnswerMessage> {
+        const _params : OpenProject = {projectPath};
+        const res = await this.client.call('OpenProject', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async newProject(): Promise<DoneAnswerMessage> {
+        const _params : NewProject = {};
+        const res = await this.client.call('NewProject', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async getProjectInfo(): Promise<string> {
+        const _params : GetProjectInfo = {};
+        const res = await this.client.call('GetProjectInfo', _params) as GetProjectInfoAnswerWithMetadata;
+        return res.projectName;
+    }
+
+    async status(): Promise<string> {
+        const _params : Status = {};
+        const res = await this.client.call('Status', _params) as StatusAnswerWithMetadata;
+        return res.description;
+    }
+
+    async getModulesStatus(): Promise<GetModulesStatusAnswer> {
+        const _params : GetModulesStatus = {};
+        const res = await this.client.call('GetModulesStatus', _params) as GetModulesStatusAnswerWithMetadata;
+        return {repoAvailable: res.repoAvailable, modules: res.modules} as GetModulesStatusAnswer;
+    }
+
+    async getModuleInfo(moduleName: string): Promise<ModelInfo[]> {
+        const _params : GetModuleInfo = {moduleName};
+        const res = await this.client.call('GetModuleInfo', _params) as GetModuleInfoAnswerWithMetadata;
+        return res.models;
+    }
+
+    async modelixCleanTransient(): Promise<DoneAnswerMessage> {
+        const _params : ModelixCleanTransient = {};
+        const res = await this.client.call('ModelixCleanTransient', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async modelixCheckoutTransientProject(projectName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
+        const _params : ModelixCheckoutTransientProject = {projectName, repositoryId, versionId, modelServerUrl};
+        const res = await this.client.call('ModelixCheckoutTransientProject', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async modelixCheckoutTransientModule(moduleName: string, repositoryId: string, versionId: number, modelServerUrl: string): Promise<DoneAnswerMessage> {
+        const _params : ModelixCheckoutTransientModule = {moduleName, repositoryId, versionId, modelServerUrl};
+        const res = await this.client.call('ModelixCheckoutTransientModule', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    async modelixResetModelServer(modelServerUrl: string): Promise<DoneAnswerMessage> {
+        const _params : ModelixResetModelServer = {modelServerUrl};
+        const res = await this.client.call('ModelixResetModelServer', _params) as DoneAnswerMessageWithMetadata;
+        return {success: res.success, message: res.message} as DoneAnswerMessage;
     }
 }
