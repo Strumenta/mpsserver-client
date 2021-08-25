@@ -1,7 +1,6 @@
 import { parseString } from 'xml2js';
 import { promises as fsPromises } from 'fs';
-import {GetModuleStatusAnswer, GetModuleStatusAnswerWithMetadata} from "../messages";
-import {ParameterDeclarationStructure, Project, SourceFile} from "ts-morph";
+import {Project, SourceFile} from "ts-morph";
 
 function convertType(xmlType: any, sourceFile: SourceFile | null = null) : string {
     const xmlTypeName = xmlType.attrs.name;
@@ -70,9 +69,8 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
 
     const project = new Project();
     const client = project.createSourceFile(clientGenerationPath, "", { overwrite: true });
-    project.emit(); // async
+    await project.emit();
 
-    // import {BaseWSClient} from "../src/BaseWSClient";
     client.addImportDeclaration({namedImports: ["BaseWSClient"], moduleSpecifier: "./BaseWSClient"})
 
     const clientClass = client.addClass({
@@ -91,11 +89,9 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                 } else {
 
                     result.wsprotocol.requestEndpoint.forEach((endpoint: any) => {
-                        // console.log("endpoint", JSON.stringify(endpoint, null, 2));
                         const requestMsgName = endpoint.attrs.messageType;
                         const requestMsg = result.wsprotocol.message.find((message:any)=>message.attrs.name === requestMsgName);
                         const requestFields = requestMsg.field.filter((f:any)=>f.attrs.name !== 'requestId' && f.attrs.name !== 'type');
-                        //console.log("requestMsg", requestMsg);
                         const answers = endpoint.answer;
                         if (answers.length !== 1) {
                             throw Error("Answers found: " + answers);

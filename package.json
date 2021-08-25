@@ -35,8 +35,8 @@
     "build": "npx tsc",
     "watch": "npx tsc --watch",
     "format": "prettier --write \\\"src/**/*.ts\\\" \\\"tests/**/*.ts\\\"",
-    "lint": "eslint --ext .ts src tests",
-    "lintfix": "eslint --ext .ts src tests --fix",
+    "lint": "eslint --ext .ts src",
+    "lintfix": "eslint --ext .ts src --fix",
     "test": "mocha -r ts-node/register tests/**/*.test.ts"
   },
   "repository": {

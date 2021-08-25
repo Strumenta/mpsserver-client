@@ -12,28 +12,24 @@ async function core() {
     const modulesStatus = await client.getModulesStatus();
     console.log("got modules status");
     modulesStatus.modules.forEach((module) => {
-        // console.log(" - got module", module.name);
         if (module.name.startsWith("com.strumenta")) {
             console.log(" - got module", module.name);
-            client.getModuleInfo(module.name).then((moduleInfo) => {
+            void client.getModuleInfo(module.name).then((moduleInfo) => {
                 moduleInfo.forEach((model) => {
                     console.log("   - got model", model.qualifiedName);
                     client.getInstancesOfConcept(model.qualifiedName,
                         "com.strumenta.mpsserver.protocol.WebSocketsAPIsGroup")
                         .then((answer) => {
                             const nodes = answer.nodes;
-                            // if (nodes.length > 0) {
-                            //     console.log("      nodes", nodes);
-                            // }
                             nodes.forEach((node) => {
                                 console.log("APIS group", node.name);
                             })
                         }).catch((reason) => {
-                        // console.error("unable to get instances for this model", model.qualifiedName);
+                            console.error("unable to get instances for this model", model.qualifiedName);
                     });
                 })
             });
         }
     });
 }
-core();
+void core();
