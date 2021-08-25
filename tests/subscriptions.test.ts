@@ -38,9 +38,68 @@ describe('subscriptions', () => {
         const client = new MPSServerClient(wsServer.url());
         const onNodeAddedReceived : NodeAdded[] = [];
         await client.connect(500);
-        const res = await client.registerForModelChanges("mymodel.foo.bar", {
+        await client.registerForModelChanges("mymodel.foo.bar", {
             onNodeAdded: (notification) => {
                onNodeAddedReceived.push(notification);
+            }
+        });
+        wsServer.close();
+        assert.deepEqual(onNodeAddedReceived.length, 1);
+        assert.deepEqual(onNodeAddedReceived[0], {
+            type: "NodeAdded",
+            parentNodeId :{
+                regularId: "nodeID-123"
+            },
+            child: {
+                abstractConcept: false,
+                children: [],
+                concept: "myconcept",
+                conceptAlias:"my",
+                containingLink: "myparentlink",
+                id: "nodeID-234",
+                interfaceConcept: false,
+                name: "MyNode",
+                properties: {},
+                refs: {}
+            },
+            index: 2,
+            relationName: "foos"
+        } as NodeAdded);
+    });
+    it('add node without connect', async () => {
+        const wsServer = new SimpleWSServer(9000, {
+            "rpc.on": (data, socket) => {
+                socket.send(JSON.stringify({"jsonrpc": "2.0", "id": data.id, "result": "ok"}));
+
+                const nodeAdded : NodeAdded = {
+                    type: "NodeAdded",
+                    parentNodeId :{
+                        regularId: "nodeID-123"
+                    },
+                    child: {
+                        abstractConcept: false,
+                        children: [],
+                        concept: "myconcept",
+                        conceptAlias:"my",
+                        containingLink: "myparentlink",
+                        id: "nodeID-234",
+                        interfaceConcept: false,
+                        name: "MyNode",
+                        properties: {},
+                        refs: {}
+                    },
+                    index: 2,
+                    relationName: "foos"
+                } as NodeAdded;
+                socket.send(JSON.stringify({"notification": "modelChanges", "params": nodeAdded}));
+            }
+        });
+
+        const client = new MPSServerClient(wsServer.url());
+        const onNodeAddedReceived : NodeAdded[] = [];
+        await client.registerForModelChanges("mymodel.foo.bar", {
+            onNodeAdded: (notification) => {
+                onNodeAddedReceived.push(notification);
             }
         });
         wsServer.close();
