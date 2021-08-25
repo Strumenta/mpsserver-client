@@ -20,7 +20,9 @@ describe('subscriptions', () => {
                         concept: "myconcept",
                         conceptAlias:"my",
                         containingLink: "myparentlink",
-                        id: "nodeID-234",
+                        id: {
+                            regularNodeID: "nodeID-234"
+                        },
                         interfaceConcept: false,
                         name: "MyNode",
                         properties: {},
@@ -54,7 +56,9 @@ describe('subscriptions', () => {
                 concept: "myconcept",
                 conceptAlias:"my",
                 containingLink: "myparentlink",
-                id: "nodeID-234",
+                id:  {
+                    regularNodeID: "nodeID-234"
+                },
                 interfaceConcept: false,
                 name: "MyNode",
                 properties: {},
@@ -80,7 +84,9 @@ describe('subscriptions', () => {
                         concept: "myconcept",
                         conceptAlias:"my",
                         containingLink: "myparentlink",
-                        id: "nodeID-234",
+                        id: {
+                            regularNodeID: "nodeID-234"
+                        },
                         interfaceConcept: false,
                         name: "MyNode",
                         properties: {},
@@ -113,7 +119,9 @@ describe('subscriptions', () => {
                 concept: "myconcept",
                 conceptAlias:"my",
                 containingLink: "myparentlink",
-                id: "nodeID-234",
+                id: {
+                    regularNodeID: "nodeID-234"
+                },
                 interfaceConcept: false,
                 name: "MyNode",
                 properties: {},
@@ -139,7 +147,9 @@ describe('subscriptions', () => {
                         concept: "myconcept",
                         conceptAlias:"my",
                         containingLink: "myparentlink",
-                        id: "nodeID-234",
+                        id: {
+                            regularNodeID: "nodeID-234"
+                        },
                         interfaceConcept: false,
                         name: "MyNode",
                         properties: {},
@@ -173,7 +183,9 @@ describe('subscriptions', () => {
                 concept: "myconcept",
                 conceptAlias:"my",
                 containingLink: "myparentlink",
-                id: "nodeID-234",
+                id: {
+                    regularNodeID: "nodeID-234"
+                },
                 interfaceConcept: false,
                 name: "MyNode",
                 properties: {},

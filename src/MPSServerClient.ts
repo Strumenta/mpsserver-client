@@ -8,7 +8,7 @@ import {
     ModelixCheckoutTransientModule,
     ModelixCheckoutTransientProject,
     ModelixCleanTransient,
-    ModelixResetModelServer
+    ModelixResetModelServer, PropertyValue
 } from "./messages";
 import { NodeReference } from "./messages";
 import { CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata } from "./messages";
@@ -165,7 +165,7 @@ export class MPSServerClient extends BaseWSClient {
         return res.models;
     }
 
-    async requestForPropertyChange(node: NodeReference, propertyName: string, propertyValue: any): Promise<AnswerPropertyChange> {
+    async requestForPropertyChange(node: NodeReference, propertyName: string, propertyValue: PropertyValue): Promise<AnswerPropertyChange> {
         await this.connect();
         const _params : RequestForPropertyChange = {node, propertyName, propertyValue};
         const res = await this.client.call('RequestForPropertyChange', _params) as AnswerPropertyChangeWithMetadata;
@@ -298,7 +298,7 @@ export class MPSServerClient extends BaseWSClient {
                     modelListener.onErrorsForNodeReported(eventData as ErrorsForNodeReported);
                 }
             } else {
-                throw new Error(`unknown ModelChanges notification type: ${eventData.type}`);
+                throw new Error(`unknown ModelChanges notification type: ${eventData.type as string}`);
             }
         });
         await this.client.subscribe(["modelChanges", modelName]);

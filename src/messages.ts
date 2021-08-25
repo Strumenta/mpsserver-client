@@ -1,3 +1,5 @@
+export type PropertyValue = string | number | boolean;
+
 export interface CreateIntentionsBlockWithMetadata {
   node: NodeReference
   requestId: string
@@ -13,7 +15,7 @@ export interface NodeReference {
   id: NodeIDInfo
 }
 
-export type NodeIDInfo = { }
+export type NodeIDInfo = Record<string, unknown>
 
 export interface RegularNodeIDInfo {
   regularId: number
@@ -47,7 +49,7 @@ export interface DeleteIntentionsBlockWithMetadata {
   type: string
 }
 
-export type DeleteIntentionsBlock = { }
+export type DeleteIntentionsBlock = Record<string, unknown>
 
 export interface GetIntentionsBlockWithMetadata {
   blockUUID: UUID
@@ -114,7 +116,7 @@ export interface ExecuteActionAnswerWithMetadata {
 export interface ExecuteActionAnswer {
   success: boolean
   errorMessage: string
-  result: any
+  result: unknown
 }
 
 export interface MakeProjectWithMetadata {
@@ -173,14 +175,14 @@ export interface NewProjectWithMetadata {
   type: string
 }
 
-export type NewProject = { }
+export type NewProject = Record<string, unknown>
 
 export interface GetProjectInfoWithMetadata {
   requestId: string
   type: string
 }
 
-export type GetProjectInfo = { }
+export type GetProjectInfo = Record<string, unknown>
 
 export interface GetProjectInfoAnswerWithMetadata {
   projectName: string
@@ -197,7 +199,7 @@ export interface ModelixCleanTransientWithMetadata {
   type: string
 }
 
-export type ModelixCleanTransient = { }
+export type ModelixCleanTransient = Record<string, unknown>
 
 export interface ModelixCheckoutTransientProjectWithMetadata {
   projectName: string
@@ -246,7 +248,7 @@ export interface StatusWithMetadata {
   type: string
 }
 
-export type Status = { }
+export type Status = Record<string, unknown>
 
 export interface StatusAnswerWithMetadata {
   description: string
@@ -263,7 +265,7 @@ export interface GetModulesStatusWithMetadata {
   type: string
 }
 
-export type GetModulesStatus = { }
+export type GetModulesStatus = Record<string, unknown>
 
 export interface GetModulesStatusAnswerWithMetadata {
   repoAvailable: boolean
@@ -325,7 +327,7 @@ export interface RequestForPropertyChangeWithMetadata {
 export interface RequestForPropertyChange {
   node: NodeReference
   propertyName: string
-  propertyValue: any
+  propertyValue: PropertyValue
 }
 
 export interface AnswerPropertyChangeWithMetadata {
@@ -333,14 +335,14 @@ export interface AnswerPropertyChangeWithMetadata {
   type: string
 }
 
-export type AnswerPropertyChange = { }
+export type AnswerPropertyChange = Record<string, unknown>
 
 export interface RegisterForChangesWithMetadata {
   modelName: string
   type: string
 }
 
-export type RegisterForChanges = { }
+export type RegisterForChanges = Record<string, unknown>
 
 export interface NodeInfoDetailed {
   containingLink: string
@@ -477,7 +479,7 @@ export interface DeleteNodeWithMetadata {
   type: string
 }
 
-export type DeleteNode = { }
+export type DeleteNode = Record<string, unknown>
 
 export interface DefaultInsertionWithMetadata {
   modelName: string
@@ -638,7 +640,7 @@ export interface AskErrorsForNodeWithMetadata {
   type: string
 }
 
-export type AskErrorsForNode = { }
+export type AskErrorsForNode = Record<string, unknown>
 
 export interface GetNodeWithMetadata {
   node: NodeReference
