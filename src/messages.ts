@@ -1,13 +1,21 @@
 import {PropertyValue} from "./base";
 
-export interface CreateIntentionsBlockWithMetadata {
+//
+// messages for group Actions
+//
+
+export interface ExecuteActionWithMetadata {
   node: NodeReference
+  action: string
+  params: {[key:string]:string}
   requestId: string
   type: string
 }
 
-export interface CreateIntentionsBlock {
+export interface ExecuteAction {
   node: NodeReference
+  action: string
+  params: {[key:string]:string}
 }
 
 export interface NodeReference {
@@ -24,6 +32,34 @@ export interface RegularNodeIDInfo {
 export interface ForeignNodeIDInfo {
   foreignId: string
 }
+
+export interface ExecuteActionAnswerWithMetadata {
+  success: boolean
+  errorMessage: string
+  result: unknown
+  requestId: string
+  type: string
+}
+
+export interface ExecuteActionAnswer {
+  success: boolean
+  errorMessage: string
+  result: unknown
+}
+
+
+
+
+export interface CreateIntentionsBlockWithMetadata {
+  node: NodeReference
+  requestId: string
+  type: string
+}
+
+export interface CreateIntentionsBlock {
+  node: NodeReference
+}
+
 
 export interface CreateIntentionsBlockAnswerWithMetadata {
   blockUUID: UUID
@@ -89,34 +125,6 @@ export interface ExecuteIntentionWithMetadata {
 export interface ExecuteIntention {
   blockUUID: UUID
   index: number
-}
-
-export interface ExecuteActionWithMetadata {
-  node: NodeReference
-  action: string
-  params: {[key:string]:string}
-  requestId: string
-  type: string
-}
-
-export interface ExecuteAction {
-  node: NodeReference
-  action: string
-  params: {[key:string]:string}
-}
-
-export interface ExecuteActionAnswerWithMetadata {
-  success: boolean
-  errorMessage: string
-  result: any
-  requestId: string
-  type: string
-}
-
-export interface ExecuteActionAnswer {
-  success: boolean
-  errorMessage: string
-  result: unknown
 }
 
 export interface MakeProjectWithMetadata {

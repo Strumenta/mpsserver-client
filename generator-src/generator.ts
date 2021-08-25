@@ -14,7 +14,7 @@ function convertType(xmlType: any, sourceFile: SourceFile | null = null) : strin
         return 'number';
     }
     if (xmlTypeName === 'Object') {
-        return 'any';
+        return 'unknown';
     }
     if (xmlTypeName === 'Map') {
         return `{[key:${convertType(xmlType.type[0], sourceFile)}]:${convertType(xmlType.type[1], sourceFile)}}`;
@@ -29,7 +29,7 @@ function convertType(xmlType: any, sourceFile: SourceFile | null = null) : strin
 }
 
 function codeForEmptyInterface(name: string) : string {
-    return `export type ${name} = { }\n\n`;
+    return `export type ${name} = Record<string, unknown>\n\n`;
 }
 
 function hasMetadata(message: any) : boolean {
@@ -65,6 +65,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     const knownTypes : string[] = [];
     let gen = "";
     let clientGen = "";
+    gen += "import {PropertyValue} from \"./base\";\n\n";
     clientGen += "class Client {\n\n";
 
     const project = new Project();
@@ -160,7 +161,12 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                         })
                     });
 
+                    gen += "//\n";
+                    gen += `// messages for group ${result.wsprotocol.attrs.name}\n`;
+                    gen += "//\n\n";
+
                     result.wsprotocol.message.forEach((message: any) => {
+
                         const name = message.attrs.name;
                         const fields = message.field || [];
 
