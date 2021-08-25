@@ -1,6 +1,4 @@
-import { expect } from 'chai';
 import {MPSServerClient} from "../src";
-import WebSocket from 'ws';
 import {ErrorsForModelReported, NodeAdded, NodeRemoved} from "../src/notifications";
 import {SimpleWSServer} from "./support";
 import * as assert from "assert";

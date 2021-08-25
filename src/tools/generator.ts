@@ -83,7 +83,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     });
 
     await Promise.all(paths.map(async (path:string) => {
-        return new Promise<void>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject)  => {
             const xmlCode: string = await fsPromises.readFile(path, 'utf-8')
             parseString(xmlCode, {attrkey: 'attrs'}, (err, result: any) => {
                 if (err) {
