@@ -1,3 +1,5 @@
+import { BaseWSClient } from "./BaseWSClient";
+export {BaseWSClient}
 import {MPSServerClient} from "./gen/MPSServerClient";
 export {MPSServerClient}
 
