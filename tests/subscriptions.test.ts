@@ -1,5 +1,5 @@
 import {MPSServerClient} from "../src";
-import {ErrorsForModelReport, NodeAdded, NodeRemoved} from "../src/messages";
+import {ErrorsForModelReport, NodeAdded, NodeRemoved} from "../src";
 import {SimpleWSServer} from "./support";
 import * as assert from "assert";
 

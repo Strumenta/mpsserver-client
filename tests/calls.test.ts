@@ -1,6 +1,6 @@
 import {MPSServerClient} from "../src";
 import WebSocket from 'ws';
-import {CreateIntentionsBlockAnswer, GetIntentionsBlockAnswer} from "../src/messages";
+import {CreateIntentionsBlockAnswer, GetIntentionsBlockAnswer} from "../src";
 import {SimpleWSServer} from "./support";
 import * as assert from "assert";
 
