@@ -176,6 +176,11 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
        extends: "BaseWSClient"
     });
 
+    const constructor = clientClass.addConstructor({
+        parameters: [{name: "url", type: "string"}],
+        statements: [`super(url);`]
+    });
+
     const notificationsToEndpoint : {[key:string]:string} = {};
 
     for (const path of paths) {
