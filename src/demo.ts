@@ -1,5 +1,5 @@
 import {MPSServerClient} from ".";
-import {GetInstancesOfConceptAnswer, ModelInfo, ModuleStatus} from "./gen/messages";
+import {GetInstancesOfConceptAnswer, ModelInfo, ModuleStatus, NodeInfo} from "./gen/messages";
 
 const client = new MPSServerClient('ws://localhost:2913/jsonrpc');
 
@@ -30,7 +30,7 @@ async function core() {
                     const answer = await client.getInstancesOfConcept(model.qualifiedName,
                         "com.strumenta.mpsserver.protocol.WebSocketsAPIsGroup")
                     const nodes = answer.nodes;
-                    nodes.forEach((node) => {
+                    nodes.forEach((node: NodeInfo) => {
                         console.log("     APIS group", node.name);
                     })
                 }
