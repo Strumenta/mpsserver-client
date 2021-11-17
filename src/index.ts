@@ -1,2 +1,2 @@
-import {MPSServerClient} from "./MPSServerClient";
+import {MPSServerClient} from "./gen/MPSServerClient";
 export {MPSServerClient}

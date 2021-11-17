@@ -1,4 +1,5 @@
 import {MPSServerClient} from ".";
+import {GetInstancesOfConceptAnswer, ModelInfo, ModuleStatus} from "./gen/messages";
 
 const client = new MPSServerClient('ws://localhost:2913/jsonrpc');
 
@@ -11,20 +12,20 @@ async function core() {
     console.log("project name", projectName);
     const modulesStatus = await client.getModulesStatus();
     console.log("got modules status");
-    modulesStatus.modules.forEach((module) => {
+    modulesStatus.modules.forEach((module: ModuleStatus) => {
         if (module.name.startsWith("com.strumenta")) {
             console.log(" - got module", module.name);
-            void client.getModuleInfo(module.name).then((moduleInfo) => {
+            void client.getModuleInfo(module.name).then((moduleInfo: ModelInfo[]) => {
                 moduleInfo.forEach((model) => {
                     console.log("   - got model", model.qualifiedName);
                     client.getInstancesOfConcept(model.qualifiedName,
                         "com.strumenta.mpsserver.protocol.WebSocketsAPIsGroup")
-                        .then((answer) => {
+                        .then((answer: GetInstancesOfConceptAnswer) => {
                             const nodes = answer.nodes;
                             nodes.forEach((node) => {
                                 console.log("APIS group", node.name);
                             })
-                        }).catch((reason) => {
+                        }).catch((reason: any) => {
                             console.error("unable to get instances for this model", model.qualifiedName);
                     });
                 })

@@ -1,5 +1,5 @@
 import { parseString } from 'xml2js';
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises, existsSync, lstatSync, readdirSync } from 'fs';
 import {
     ExpressionStatement, IfStatement,
     OptionalKind,
@@ -159,20 +159,20 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     const knownTypes : string[] = [];
     let gen = "";
     let clientGen = "";
-    gen += "import {PropertyValue} from \"./base\";\n\n";
+    gen += "import {PropertyValue} from \"../base\";\n\n";
     clientGen += "class Client {\n\n";
 
     const project = new Project();
     const client = project.createSourceFile(clientGenerationPath, "", { overwrite: true });
     await project.emit();
 
-    client.addImportDeclaration({namedImports: ["BaseWSClient"], moduleSpecifier: "./BaseWSClient"})
-    client.addImportDeclaration({namedImports: ["PropertyValue"], moduleSpecifier: "./base"})
+    client.addImportDeclaration({namedImports: ["BaseWSClient"], moduleSpecifier: "../BaseWSClient"})
+    client.addImportDeclaration({namedImports: ["PropertyValue"], moduleSpecifier: "../base"})
 
     const clientClass = client.addClass({
        isAbstract: false,
        isExported: true,
-       name: "MPSServerClientGen",
+       name: "MPSServerClient",
        extends: "BaseWSClient"
     });
 
@@ -492,13 +492,42 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     await project.save();
 }
 
-const baseDir = "/Users/federico/repos/mpsserver/mpscode/solutions/com.strumenta.mpsserver.server/source_gen/com/strumenta/mpsserver/logic/";
-const modelixDir = "/Users/federico/repos/mpsserver/mpscode/solutions/com.strumenta.mpsserver.modelix/source_gen/com/strumenta/mpsserver/modelix/serveraddons/"
+if (process.argv.length != 3) {
+    console.error("Exactly one parameter should be specified. That parameter should indicate the MPSServer directory");
+    process.exit(1);
+}
+const mpsServerDir = process.argv[2];
+try {
+    if (!lstatSync(mpsServerDir).isDirectory() ) {
+        console.error("Specified path is not a directory");
+        process.exit(1);
+    }
+} catch(err) {
+    console.error("Specified path does not exist");
+    process.exit(1);
+}
 
-processXmlFile([`${baseDir}/wsprotocol_Actions.xml`,
-    `${baseDir}/wsprotocol_Intentions.xml`,
-    `${baseDir}/wsprotocol_Make.xml`,
-    `${baseDir}/wsprotocol_Nodes.xml`,
-    `${baseDir}/wsprotocol_Projects.xml`,
-    `${baseDir}/wsprotocol_Status.xml`,
-    `${modelixDir}/wsprotocol_ModelixIntegration.xml`], "gen/messages.ts", "src/MPSServerClientGen.ts");
+const baseDir = `${mpsServerDir}/mpscode/solutions/com.strumenta.mpsserver.server/source_gen/com/strumenta/mpsserver/logic/`;
+const modelixDir = `${mpsServerDir}/mpscode/solutions/com.strumenta.mpsserver.modelix/source_gen/com/strumenta/mpsserver/modelix/serveraddons/`;
+
+function findProtocolFiles(dir: string) : string[] {
+    const candidates: (string|null)[] = readdirSync(dir).flatMap((item) => {
+        const path = dir.endsWith("/") ? `${dir}${item}` : `${dir}/${item}`;
+        if (lstatSync(path).isDirectory()) {
+            return findProtocolFiles(path);
+        }
+        if (item.startsWith("wsprotocol_") && item.endsWith(".xml")) {
+            return path;
+        } else {
+            return null;
+        }
+    });
+    return candidates.filter((item)=> item != null).map((item) => item as string);
+}
+
+const protocolFiles : string[] = findProtocolFiles(baseDir).concat(findProtocolFiles(modelixDir))
+if (protocolFiles.length == 0) {
+    console.error("No protocol files found. Have they been generated?");
+    process.exit(1);
+}
+processXmlFile(protocolFiles, "src/gen/messages.ts", "src/gen/MPSServerClient.ts");
