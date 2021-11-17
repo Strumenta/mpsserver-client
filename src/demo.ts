@@ -12,25 +12,31 @@ async function core() {
     console.log("project name", projectName);
     const modulesStatus = await client.getModulesStatus();
     console.log("got modules status");
-    modulesStatus.modules.forEach((module: ModuleStatus) => {
+    for (const module of modulesStatus.modules) {
         if (module.name.startsWith("com.strumenta")) {
             console.log(" - got module", module.name);
-            void client.getModuleInfo(module.name).then((moduleInfo: ModelInfo[]) => {
-                moduleInfo.forEach((model) => {
-                    console.log("   - got model", model.qualifiedName);
-                    client.getInstancesOfConcept(model.qualifiedName,
+            const moduleInfos = await client.getModuleInfo(module.name)
+            for (const model of moduleInfos) {
+                console.log("   - got model", model.qualifiedName);
+                if (model.qualifiedName.endsWith("@descriptor")) {
+                    console.log("     skipping descriptor")
+                } else if (model.qualifiedName.endsWith("@java_stub")) {
+                    console.log("     skipping java_stub")
+                } else if (model.qualifiedName.endsWith("@generator")) {
+                    console.log("     skipping generator")
+                }  else if (model.qualifiedName.endsWith("@tests")) {
+                    console.log("     skipping tests")
+                } else {
+                    const answer = await client.getInstancesOfConcept(model.qualifiedName,
                         "com.strumenta.mpsserver.protocol.WebSocketsAPIsGroup")
-                        .then((answer: GetInstancesOfConceptAnswer) => {
-                            const nodes = answer.nodes;
-                            nodes.forEach((node) => {
-                                console.log("APIS group", node.name);
-                            })
-                        }).catch((reason: any) => {
-                            console.error("unable to get instances for this model", model.qualifiedName);
-                    });
-                })
-            });
+                    const nodes = answer.nodes;
+                    nodes.forEach((node) => {
+                        console.log("     APIS group", node.name);
+                    })
+                }
+                }
         }
-    });
+        }
+    process.exit(0)
 }
 void core();
