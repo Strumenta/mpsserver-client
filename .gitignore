@@ -6,5 +6,4 @@ dist
 coverage
 **/.DS_Store
 build
-gen
 src/gen/*.js
