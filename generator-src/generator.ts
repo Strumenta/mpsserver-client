@@ -64,7 +64,10 @@ function generateInterface(name: string, fields: any[], fieldsNamesToSkip: strin
     let gen = "";
     gen += `export interface ${name} {\n`;
     fields.forEach((field: any) => {
-        const fieldName = field.attrs.name;
+        let fieldName = field.attrs.name;
+        if (field.attrs.optional == "true") {
+            fieldName = `${fieldName}?`
+        }
         if (fieldsNamesToSkip.indexOf(fieldName) === -1) {
             const type = convertType(field.type[0], null, fieldName);
             gen += `  ${fieldName}: ${type}\n`;
@@ -210,11 +213,18 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                         });
 
                         const singleValueType = convertType(answerFields[0].type[0], client);
+                        const parameters = requestFields.map((f: any) => {
+                            let name = f.attrs.name;
+                            if (f.attrs.optional === "true") {
+                                name = `${name}?`
+                            }
+                            return {name,
+                            type: convertType(f.type[0], client)}});
                         clientClass.addMethod({
                             name: methodName,
                             isAsync: true,
                             returnType: `Promise<${singleValueType}>`,
-                            parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client)}}),
+                            parameters: parameters,
                             statements: [
                                 `await this.connect();`,
                                 `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
@@ -255,7 +265,9 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                         name: methodName,
                         isAsync: true,
                         returnType: `Promise<void>`,
-                        parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client, f.attrs.name)}}),
+                        parameters: requestFields.map((f: any) => {return {name: f.attrs.name, 
+                            type: convertType(f.type[0], client, f.attrs.name),
+                            optional: f.optional}}),
                         statements: [
                             `await this.connect();`,
                             `const _params : ${requestMsgName} = {${requestFields.map((f: any)=>f.attrs.name).join(", ")}};`,
@@ -431,6 +443,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
 
                     const name = message.attrs.name;
                     const fields = message.field || [];
+                    //console.log("message", message, message.attrs)
 
 
                     if (knownTypes.indexOf(name) === -1) {
@@ -439,9 +452,12 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                             gen += `export interface ${message.attrs.name} extends ${notificationsToEndpoint[message.attrs.name]}Notification {\n`;
                             gen += `  type: "${message.attrs.name}"\n`;
                             message.field.forEach((field:any)=>{
-                                const fieldName = field.attrs.name;
+                                let fieldName = field.attrs.name;
                                 if (fieldName !== 'type') {
                                     const type = convertType(field.type[0], null, fieldName);
+                                    if (field.optional) {
+                                        fieldName = `${fieldName}?`
+                                    }
                                     gen += `  ${field.attrs.name}: ${type}\n`;
                                 }
                             });

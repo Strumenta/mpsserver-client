@@ -364,7 +364,8 @@ export interface AddChildWithMetadata {
   containmentName: string
   conceptToInstantiate: string
   index: number
-  smartRefNodeId: RegularNodeIDInfo
+  smartRefNodeId?: RegularNodeIDInfo
+  idOfNewNode?: RegularNodeIDInfo
   requestId: string
   type: string
 }
@@ -374,7 +375,8 @@ export interface AddChild {
   containmentName: string
   conceptToInstantiate: string
   index: number
-  smartRefNodeId: RegularNodeIDInfo
+  smartRefNodeId?: RegularNodeIDInfo
+  idOfNewNode?: RegularNodeIDInfo
 }
 
 export interface AddChildAnswerWithMetadata {
@@ -391,7 +393,7 @@ export interface SetChildWithMetadata {
   container: NodeReference
   containmentName: string
   conceptToInstantiate: string
-  smartRefNodeId: RegularNodeIDInfo
+  smartRefNodeId?: RegularNodeIDInfo
   type: string
 }
 
@@ -399,7 +401,7 @@ export interface SetChild {
   container: NodeReference
   containmentName: string
   conceptToInstantiate: string
-  smartRefNodeId: RegularNodeIDInfo
+  smartRefNodeId?: RegularNodeIDInfo
 }
 
 export interface DeleteNodeWithMetadata {
@@ -590,18 +592,16 @@ export interface GetNodeAnswer {
   nodeData: NodeInfoDetailed
 }
 
-//
-// messages for group Projects
-//
-
-export interface OpenProjectWithMetadata {
-  projectPath: string
+export interface MoveChildWithMetadata {
+  child: NodeReference
+  index: number
   requestId: string
   type: string
 }
 
-export interface OpenProject {
-  projectPath: string
+export interface MoveChild {
+  child: NodeReference
+  index: number
 }
 
 export interface DoneAnswerMessageWithMetadata {
@@ -614,6 +614,20 @@ export interface DoneAnswerMessageWithMetadata {
 export interface DoneAnswerMessage {
   success: boolean
   message: string
+}
+
+//
+// messages for group Projects
+//
+
+export interface OpenProjectWithMetadata {
+  projectPath: string
+  requestId: string
+  type: string
+}
+
+export interface OpenProject {
+  projectPath: string
 }
 
 export interface NewProjectWithMetadata {
