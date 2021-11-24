@@ -222,6 +222,7 @@ export interface PropertyChange extends RegisterForChangesNotification {
   node: NodeReference
   propertyName: string
   propertyValue: PropertyValue
+  author: string
 }
 
 export interface ReferenceChanged extends RegisterForChangesNotification {
@@ -721,6 +722,26 @@ export interface GetModuleInfoAnswerWithMetadata {
 
 export interface GetModuleInfoAnswer {
   models: ModelInfo[]
+}
+
+export interface IntroduceSelfWithMetadata {
+  name: string
+  requestId: string
+  type: string
+}
+
+export interface IntroduceSelf {
+  name: string
+}
+
+export interface IntroduceSelfAnswerWithMetadata {
+  givenName: string
+  requestId: string
+  type: string
+}
+
+export interface IntroduceSelfAnswer {
+  givenName: string
 }
 
 //

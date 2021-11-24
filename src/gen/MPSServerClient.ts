@@ -1,6 +1,6 @@
 import { BaseWSClient } from "../BaseWSClient";
 import { PropertyValue } from "../base";
-import { AddChild, AddChildAnswerWithMetadata, AnswerAlternativesItem, AnswerAlternativesWithMetadata, AnswerDefaultInsertionWithMetadata, AnswerForDirectReferencesWithMetadata, AnswerForWrappingReferencesWithMetadata, AnswerPropertyChange, AnswerPropertyChangeWithMetadata, AskAlternatives, AskErrorsForNode, CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata, CreateRoot, DefaultInsertion, DeleteIntentionsBlock, DeleteNode, DirAlternative, DoneAnswerMessage, DoneAnswerMessageWithMetadata, ErrorsForModelReport, ErrorsForNodeReport, ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata, ExecuteIntention, GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata, GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata, GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata, GetNode, GetNodeAnswerWithMetadata, GetProjectInfo, GetProjectInfoAnswerWithMetadata, GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata, InsertNextSibling, InstantiateConcept, MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata, ModelInfo, ModelixCheckoutTransientModule, ModelixCheckoutTransientProject, ModelixCleanTransient, ModelixResetModelServer, MoveChild, NewProject, NodeAdded, NodeIDInfo, NodeInfoDetailed, NodeReference, NodeRemoved, OpenProject, PropertyChange, ReferenceChange, ReferenceChanged, RegisterForChangesListener, RegisterForChangesNotification, RegularNodeIDInfo, RequestForDirectReferences, RequestForPropertyChange, RequestForWrappingReferences, SetChild, Status, StatusAnswerWithMetadata, UUID, WraAlternative } from "./messages";
+import { AddChild, AddChildAnswerWithMetadata, AnswerAlternativesItem, AnswerAlternativesWithMetadata, AnswerDefaultInsertionWithMetadata, AnswerForDirectReferencesWithMetadata, AnswerForWrappingReferencesWithMetadata, AnswerPropertyChange, AnswerPropertyChangeWithMetadata, AskAlternatives, AskErrorsForNode, CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata, CreateRoot, DefaultInsertion, DeleteIntentionsBlock, DeleteNode, DirAlternative, DoneAnswerMessage, DoneAnswerMessageWithMetadata, ErrorsForModelReport, ErrorsForNodeReport, ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata, ExecuteIntention, GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata, GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata, GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata, GetNode, GetNodeAnswerWithMetadata, GetProjectInfo, GetProjectInfoAnswerWithMetadata, GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata, InsertNextSibling, InstantiateConcept, IntroduceSelf, IntroduceSelfAnswerWithMetadata, MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata, ModelInfo, ModelixCheckoutTransientModule, ModelixCheckoutTransientProject, ModelixCleanTransient, ModelixResetModelServer, MoveChild, NewProject, NodeAdded, NodeIDInfo, NodeInfoDetailed, NodeReference, NodeRemoved, OpenProject, PropertyChange, ReferenceChange, ReferenceChanged, RegisterForChangesListener, RegisterForChangesNotification, RegularNodeIDInfo, RequestForDirectReferences, RequestForPropertyChange, RequestForWrappingReferences, SetChild, Status, StatusAnswerWithMetadata, UUID, WraAlternative } from "./messages";
 
 export class MPSServerClient extends BaseWSClient {
     constructor(url: string) {
@@ -234,6 +234,13 @@ export class MPSServerClient extends BaseWSClient {
         const _params : GetModuleInfo = {moduleName};
         const res = await this.client.call('GetModuleInfo', _params) as GetModuleInfoAnswerWithMetadata;
         return res.models;
+    }
+
+    async introduceSelf(name: string): Promise<string> {
+        await this.connect();
+        const _params : IntroduceSelf = {name};
+        const res = await this.client.call('IntroduceSelf', _params) as IntroduceSelfAnswerWithMetadata;
+        return res.givenName;
     }
 
     async modelixCleanTransient(): Promise<DoneAnswerMessage> {

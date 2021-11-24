@@ -8,11 +8,19 @@ async function core() {
         console.error("unable to connect to server", reason);
         process.exit(1);
     });
+    const myName = client.introduceSelf("example");
+    console.log("assigned name", myName);
     client.registerForChanges("com.strumenta.financialcalc.sandbox.company", {
         onPropertyChange: (event) => {
             console.log("property changed", event)
         }
     })
-    //process.exit(0)
+    client.requestForPropertyChange({
+        model: 'com.strumenta.financialcalc.sandbox.company',
+            id: { regularId: '516698799897574170' }
+    },
+    'name',
+        'zum7'
+)
 }
 void core();
