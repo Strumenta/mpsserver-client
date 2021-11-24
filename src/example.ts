@@ -11,10 +11,21 @@ async function core() {
     const myName = client.introduceSelf("example");
     console.log("assigned name", myName);
     client.registerForChanges("com.strumenta.financialcalc.sandbox.company", {
+        onNodeAdded: (event) => {
+            console.log("node added", event)  
+        },
+        onNodeRemoved: (event) => {
+            console.log("node removed", event)
+        },
+        onReferenceChanged: (event) => {
+            console.log("reference changed", event)
+        },        
         onPropertyChange: (event) => {
             console.log("property changed", event)
         }
+        
     })
+    
     client.requestForPropertyChange({
         model: 'com.strumenta.financialcalc.sandbox.company',
             id: { regularId: '516698799897574170' }
