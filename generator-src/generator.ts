@@ -81,79 +81,28 @@ function uncapitalize(s: string) {
     return s.charAt(0).toLowerCase() + s.slice(1);
 }
 
-function createIfStmt(client: SourceFile, f: ts.NodeFactory, eventName: string, notifications: string[], index: number) : ts.IfStatement {
+function createIfStmtForNotification(f: ts.NodeFactory, notification: string) : ts.IfStatement {
     const factory = f;
-    const notificationName = notifications[index];
-    client.addImportDeclaration({moduleSpecifier:"./messages", namedImports: [
-            notificationName
-        ]});
-    let elseStmt : ts.Statement = factory.createThrowStatement(factory.createNewExpression(
-        factory.createIdentifier("Error"),
-        undefined,
-        [factory.createTemplateExpression(
-            factory.createTemplateHead(
-                `unknown ${eventName} notification type: `,
-                `unknown ${eventName} notification type: `
-            ),
-            [factory.createTemplateSpan(
-                factory.createAsExpression(
-                    factory.createPropertyAccessExpression(
-                        factory.createIdentifier("eventData"),
-                        factory.createIdentifier("type")
-                    ),
-                    factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
-                ),
-                factory.createTemplateTail(
-                    "",
-                    ""
-                )
-            )]
-        )]
-    ));
-    if ((index + 1) < notifications.length) {
-        elseStmt = createIfStmt(client, f, eventName, notifications, index + 1);
-    }
     const ifStmt = factory.createIfStatement(
         factory.createBinaryExpression(
             factory.createPropertyAccessExpression(
-                factory.createIdentifier("eventData"),
-                factory.createIdentifier("type")
+                factory.createIdentifier("listener"),
+                factory.createIdentifier(`on${notification}`)
             ),
-            factory.createToken(ts.SyntaxKind.EqualsEqualsEqualsToken),
-            factory.createStringLiteral(notificationName)
+            factory.createToken(ts.SyntaxKind.ExclamationEqualsToken),
+            factory.createNull()
         ),
         factory.createBlock(
-            [factory.createIfStatement(
-                factory.createBinaryExpression(
-                    factory.createPropertyAccessExpression(
-                        factory.createIdentifier("listener"),
-                        factory.createIdentifier(`on${notificationName}`)
-                    ),
-                    factory.createToken(ts.SyntaxKind.ExclamationEqualsToken),
-                    factory.createNull()
+            [factory.createExpressionStatement(factory.createCallExpression(
+                factory.createPropertyAccessExpression(
+                    factory.createIdentifier("listener"),
+                    factory.createIdentifier(`on${notification}`)
                 ),
-                factory.createBlock(
-                    [factory.createExpressionStatement(factory.createCallExpression(
-                        factory.createPropertyAccessExpression(
-                            factory.createIdentifier("listener"),
-                            factory.createIdentifier(`on${notificationName}`)
-                        ),
-                        undefined,
-                        [factory.createAsExpression(
-                            factory.createIdentifier("eventData"),
-                            factory.createTypeReferenceNode(
-                                factory.createIdentifier(notificationName),
-                                undefined
-                            )
-                        )]
-                    ))],
-                    true
-                ),
-                undefined
-            )],
+                undefined,
+                [factory.createIdentifier("eventData")]
+            ))],
             true
         ),
-        elseStmt
     );
     return ifStmt;
 }
@@ -335,42 +284,105 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                     const f = ts.factory;
 
                     const notifications = (endpoint.notification || []).map((n: any) => n.attrs.messageType);
-                    const ifStmt : ts.IfStatement = createIfStmt(client, f, endpoint.attrs.messageType, notifications, 0);
+                    //const ifStmt : ts.IfStatement = createIfStmt(client, f, endpoint.attrs.messageType, notifications, 0);
 
-                    const lambda = f.createArrowFunction(
+                    // const lambda = f.createArrowFunction(
+                    //     undefined,
+                    //     undefined,
+                    //     [f.createParameterDeclaration(
+                    //         undefined,
+                    //         undefined,
+                    //         undefined,
+                    //         f.createIdentifier("eventData"),
+                    //         undefined,
+                    //         f.createTypeReferenceNode(
+                    //             f.createIdentifier(`${endpoint.attrs.messageType}Notification`),
+                    //             undefined
+                    //         ),
+                    //         undefined
+                    //     )],
+                    //     undefined,
+                    //     f.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                    //     f.createBlock(
+                    //         [ifStmt],
+                    //         true
+                    //     )
+                    // );
+                    // const s = f.createExpressionStatement(f.createCallExpression(
+                    //     f.createPropertyAccessExpression(
+                    //         f.createPropertyAccessExpression(
+                    //             f.createThis(),
+                    //             f.createIdentifier("client")
+                    //         ),
+                    //         f.createIdentifier("addListener")
+                    //     ), undefined, [f.createStringLiteral(endpoint.attrs.messageType), lambda]));
+                    let registerParams : ts.Expression[] = [f.createStringLiteral(endpoint.attrs.messageType)];
+                    fields.forEach((field:any)=>{
+                        registerParams.push(f.createIdentifier(field.attrs.name));
+                    });
+                    let blockStatements = [f.createExpressionStatement(f.createAwaitExpression(f.createCallExpression(
+                        f.createPropertyAccessExpression(
+                            f.createThis(),
+                            f.createIdentifier("connect")
+                        ),
                         undefined,
-                        undefined,
-                        [f.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            undefined,
-                            f.createIdentifier("eventData"),
-                            undefined,
-                            f.createTypeReferenceNode(
-                                f.createIdentifier(`${endpoint.attrs.messageType}Notification`),
-                                undefined
+                        []
+                    )))];
+
+                    notifications.forEach((notification:string)=>{
+                        client.addImportDeclaration({moduleSpecifier:"./messages", namedImports: [
+                                notification
+                        ]});
+                        const lambda =  f.createArrowFunction(
+                                undefined,
+                                undefined,
+                                [f.createParameterDeclaration(
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    f.createIdentifier("eventData"),
+                                    undefined,
+                                    f.createTypeReferenceNode(
+                                        f.createIdentifier(notification),
+                                        undefined
+                                    ),
+                                    undefined
+                                )],
+                                undefined,
+                                f.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                                f.createBlock(
+                                    [createIfStmtForNotification(f, notification)],
+                                    true
+                                )
+                            );
+                        blockStatements.push(f.createExpressionStatement(f.createAwaitExpression(f.createCallExpression(
+                            f.createPropertyAccessExpression(
+                                f.createPropertyAccessExpression(
+                                    f.createThis(),
+                                    f.createIdentifier("client")
+                                ),
+                                f.createIdentifier("on")
                             ),
-                            undefined
-                        )],
-                        undefined,
-                        f.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                        f.createBlock(
-                            [ifStmt],
-                            true
-                        )
-                    );
-                    const s = f.createExpressionStatement(f.createCallExpression(
+                            undefined,
+                            [f.createStringLiteral(notification), lambda]
+                        ))))
+                    });
+                    
+                    blockStatements.push(f.createExpressionStatement(f.createAwaitExpression(f.createCallExpression(
                         f.createPropertyAccessExpression(
                             f.createPropertyAccessExpression(
                                 f.createThis(),
                                 f.createIdentifier("client")
                             ),
-                            f.createIdentifier("addListener")
-                        ), undefined, [f.createStringLiteral(endpoint.attrs.messageType), lambda]));
-                    let registerParams : ts.Expression[] = [f.createStringLiteral(endpoint.attrs.messageType)];
-                    fields.forEach((field:any)=>{
-                        registerParams.push(f.createIdentifier(field.attrs.name));
-                    });
+                            f.createIdentifier("subscribe")
+                        ),
+                        undefined,
+                        [f.createArrayLiteralExpression(
+                            registerParams,
+                            false
+                        )]
+                    ))));
+                    
                     registerMethod.transform(traversal => {
                         return f.createMethodDeclaration(
                             undefined,
@@ -410,29 +422,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                                 [f.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)]
                             ),
                             f.createBlock(
-                                [f.createExpressionStatement(f.createAwaitExpression(f.createCallExpression(
-                                    f.createPropertyAccessExpression(
-                                        f.createThis(),
-                                        f.createIdentifier("connect")
-                                    ),
-                                    undefined,
-                                    []
-                                ))),
-                                s,
-                                    f.createExpressionStatement(f.createAwaitExpression(f.createCallExpression(
-                                        f.createPropertyAccessExpression(
-                                            f.createPropertyAccessExpression(
-                                                f.createThis(),
-                                                f.createIdentifier("client")
-                                            ),
-                                            f.createIdentifier("subscribe")
-                                        ),
-                                        undefined,
-                                        [f.createArrayLiteralExpression(
-                                            registerParams,
-                                            false
-                                        )]
-                                    )))],
+                                blockStatements,
                                 true
                             )
                         )

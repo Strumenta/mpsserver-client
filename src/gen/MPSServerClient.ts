@@ -161,46 +161,36 @@ export class MPSServerClient extends BaseWSClient {
 
     async registerForChanges(modelName: string, listener: RegisterForChangesListener = {}): Promise<void> {
     await this.connect();
-    this.client.addListener("RegisterForChanges", (eventData: RegisterForChangesNotification) => {
-        if (eventData.type === "PropertyChange") {
-            console.log("FOO");
-            if (listener.onPropertyChange != null) {
-                listener.onPropertyChange(eventData as PropertyChange);
-            }
-        }
-        else if (eventData.type === "ReferenceChanged") {
-            if (listener.onReferenceChanged != null) {
-                listener.onReferenceChanged(eventData as ReferenceChanged);
-            }
-        }
-        else if (eventData.type === "NodeAdded") {
-            if (listener.onNodeAdded != null) {
-                listener.onNodeAdded(eventData as NodeAdded);
-            }
-        }
-        else if (eventData.type === "NodeRemoved") {
-            if (listener.onNodeRemoved != null) {
-                listener.onNodeRemoved(eventData as NodeRemoved);
-            }
-        }
-        else if (eventData.type === "ErrorsForModelReport") {
-            if (listener.onErrorsForModelReport != null) {
-                listener.onErrorsForModelReport(eventData as ErrorsForModelReport);
-            }
-        }
-        else if (eventData.type === "ErrorsForNodeReport") {
-            if (listener.onErrorsForNodeReport != null) {
-                listener.onErrorsForNodeReport(eventData as ErrorsForNodeReport);
-            }
-        }
-        else
-            throw new Error(`unknown RegisterForChanges notification type: ${eventData.type as string}`);
-    });
-    await this.client.on("PropertyChange", function (eventData) {
+    await this.client.on("PropertyChange", (eventData: PropertyChange) => {
         if (listener.onPropertyChange != null) {
-            listener.onPropertyChange(eventData as PropertyChange);
+            listener.onPropertyChange(eventData);
         }
-    })
+    });
+    await this.client.on("ReferenceChanged", (eventData: ReferenceChanged) => {
+        if (listener.onReferenceChanged != null) {
+            listener.onReferenceChanged(eventData);
+        }
+    });
+    await this.client.on("NodeAdded", (eventData: NodeAdded) => {
+        if (listener.onNodeAdded != null) {
+            listener.onNodeAdded(eventData);
+        }
+    });
+    await this.client.on("NodeRemoved", (eventData: NodeRemoved) => {
+        if (listener.onNodeRemoved != null) {
+            listener.onNodeRemoved(eventData);
+        }
+    });
+    await this.client.on("ErrorsForModelReport", (eventData: ErrorsForModelReport) => {
+        if (listener.onErrorsForModelReport != null) {
+            listener.onErrorsForModelReport(eventData);
+        }
+    });
+    await this.client.on("ErrorsForNodeReport", (eventData: ErrorsForNodeReport) => {
+        if (listener.onErrorsForNodeReport != null) {
+            listener.onErrorsForNodeReport(eventData);
+        }
+    });
     await this.client.subscribe(["RegisterForChanges", modelName]);
 }
 
