@@ -163,6 +163,7 @@ export class MPSServerClient extends BaseWSClient {
     await this.connect();
     this.client.addListener("RegisterForChanges", (eventData: RegisterForChangesNotification) => {
         if (eventData.type === "PropertyChange") {
+            console.log("FOO");
             if (listener.onPropertyChange != null) {
                 listener.onPropertyChange(eventData as PropertyChange);
             }
@@ -195,6 +196,11 @@ export class MPSServerClient extends BaseWSClient {
         else
             throw new Error(`unknown RegisterForChanges notification type: ${eventData.type as string}`);
     });
+    await this.client.on("PropertyChange", function (eventData) {
+        if (listener.onPropertyChange != null) {
+            listener.onPropertyChange(eventData as PropertyChange);
+        }
+    })
     await this.client.subscribe(["RegisterForChanges", modelName]);
 }
 

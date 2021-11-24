@@ -13,6 +13,6 @@ async function core() {
             console.log("property changed", event)
         }
     })
-    process.exit(0)
+    //process.exit(0)
 }
 void core();
