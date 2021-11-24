@@ -230,6 +230,7 @@ export interface ReferenceChanged extends RegisterForChangesNotification {
   node: NodeReference
   referenceName: string
   referenceValue: NodeReference
+  author: string
 }
 
 export interface NodeAdded extends RegisterForChangesNotification {
@@ -238,6 +239,7 @@ export interface NodeAdded extends RegisterForChangesNotification {
   child: NodeInfoDetailed
   index: number
   relationName: string
+  author: string
 }
 
 export interface NodeInfoDetailed {
@@ -272,6 +274,7 @@ export interface NodeRemoved extends RegisterForChangesNotification {
   child: NodeInfoDetailed
   index: number
   relationName: string
+  author: string
 }
 
 export interface ErrorsForModelReport extends RegisterForChangesNotification {

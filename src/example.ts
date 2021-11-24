@@ -8,7 +8,7 @@ async function core() {
         console.error("unable to connect to server", reason);
         process.exit(1);
     });
-    const myName = client.introduceSelf("example");
+    const myName = await client.introduceSelf("example");
     console.log("assigned name", myName);
     client.registerForChanges("com.strumenta.financialcalc.sandbox.company", {
         onNodeAdded: (event) => {
