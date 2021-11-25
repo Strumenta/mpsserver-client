@@ -5,12 +5,19 @@ export abstract class BaseWSClient {
     protected client: Client;
     private connected: boolean;
 
+    private wsKeepAlive() {
+        console.log("keeping alive...", new Date().toLocaleString());
+        this.client.emit("KEEP-ALIVE")
+        setTimeout(() => {this.wsKeepAlive()}, 20000)
+    }
+
     constructor(url: string) {
         this.url = url;
         this.connected = false;
         this.client = new Client(url);
         this.client.on("open", () => {
             this.connected = true;
+            this.wsKeepAlive();
         });
     }
 
