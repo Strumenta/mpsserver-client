@@ -258,6 +258,7 @@ export interface NodeInfoDetailed {
 export interface ReferenceInfo {
   id: NodeIDInfo
   model: ModelInfo
+  name?: string
 }
 
 export interface ModelInfo {
