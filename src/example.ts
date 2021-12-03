@@ -1,5 +1,4 @@
 import {MPSServerClient} from ".";
-//import {GetInstancesOfConceptAnswer, ModelInfo, ModuleStatus, NodeInfo} from ".";
 
 const client = new MPSServerClient('ws://localhost:2904/jsonrpc');
 
@@ -26,12 +25,12 @@ async function core() {
         
     })
     
-    client.requestForPropertyChange({
-        model: 'com.strumenta.financialcalc.sandbox.company',
-            id: { regularId: '516698799897574170' }
-    },
-    'name',
-        'zum7'
-)
+    // client.requestForPropertyChange({
+    //     model: 'com.strumenta.financialcalc.sandbox.company',
+    //         id: { regularId: '516698799897574170' }
+    // },
+    // 'name',
+    //     'zum7'
+    //)
 }
 void core();

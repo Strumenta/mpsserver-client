@@ -248,7 +248,7 @@ export interface NodeInfoDetailed {
   properties: {[key:string]:unknown}
   refs: {[key:string]:ReferenceInfo}
   id: NodeIDInfo
-  name: string
+  name?: string
   concept: string
   abstractConcept: boolean
   interfaceConcept: boolean
@@ -324,7 +324,7 @@ export interface GetInstancesOfConceptAnswer {
 
 export interface NodeInfo {
   id: NodeIDInfo
-  name: string
+  name?: string
   concept: string
   abstractConcept: boolean
   interfaceConcept: boolean
@@ -619,6 +619,26 @@ export interface DoneAnswerMessageWithMetadata {
 export interface DoneAnswerMessage {
   success: boolean
   message: string
+}
+
+export interface OverrideNodeWithMetadata {
+  modelName: string
+  node: OverrideNodeInfoDetails
+  requestId: string
+  type: string
+}
+
+export interface OverrideNode {
+  modelName: string
+  node: OverrideNodeInfoDetails
+}
+
+export interface OverrideNodeInfoDetails {
+  id: NodeIDInfo
+  concept: string
+  children: {[key:string]:OverrideNodeInfoDetails[]}
+  properties: {[key:string]:unknown}
+  refs: {[key:string]:NodeReference}
 }
 
 //
