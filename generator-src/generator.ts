@@ -5,6 +5,7 @@ import {
     OptionalKind,
     ParameterDeclarationStructure,
     Project,
+    Scope,
     SourceFile,
     StatementStructures,
     ts
@@ -107,7 +108,8 @@ function createIfStmtForNotification(f: ts.NodeFactory, notification: string) : 
     return ifStmt;
 }
 
-async function processXmlFile(paths: string[], messagesGenerationPath: string, clientGenerationPath: string) {
+async function processXmlFile(paths: string[], messagesGenerationPath: string, clientGenerationPath: string,
+                              protectedRequests: string[]) {
     const knownTypes : string[] = [];
     let gen = "";
     let clientGen = "";
@@ -124,7 +126,7 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
     const clientClass = client.addClass({
        isAbstract: false,
        isExported: true,
-       name: "MPSServerClient",
+       name: "MPSServerClientGenerated",
        extends: "BaseWSClient"
     });
 
@@ -169,9 +171,11 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                             }
                             return {name,
                             type: convertType(f.type[0], client)}});
+                        const scope: Scope = protectedRequests.indexOf(requestMsgName) == -1 ? Scope.Public : Scope.Protected;
                         clientClass.addMethod({
                             name: methodName,
                             isAsync: true,
+                            scope,
                             returnType: `Promise<${singleValueType}>`,
                             parameters: parameters,
                             statements: [
@@ -185,9 +189,12 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                             namedImports: [requestMsgName, answerMsgName, `${answerMsgName}WithMetadata`],
                             moduleSpecifier: "./messages"
                         });
+                        const scope: Scope = protectedRequests.indexOf(requestMsgName) == -1 ? Scope.Public : Scope.Protected;
+
                         clientClass.addMethod({
                             name: methodName,
                             isAsync: true,
+                            scope,
                             returnType: `Promise<${answerMsgName}>`,
                             parameters: requestFields.map((f: any) => {return {name: f.attrs.name, type: convertType(f.type[0], client, f.attrs.name)}}),
                             statements: [
@@ -210,9 +217,12 @@ async function processXmlFile(paths: string[], messagesGenerationPath: string, c
                         namedImports: [requestMsgName],
                         moduleSpecifier: "./messages"
                     });
+                    const scope: Scope = protectedRequests.indexOf(requestMsgName) == -1 ? Scope.Public : Scope.Protected;
+
                     clientClass.addMethod({
                         name: methodName,
                         isAsync: true,
+                        scope,
                         returnType: `Promise<void>`,
                         parameters: requestFields.map((f: any) => {return {name: f.attrs.name, 
                             type: convertType(f.type[0], client, f.attrs.name),
@@ -541,4 +551,4 @@ if (protocolFiles.length == 0) {
     console.error("No protocol files found. Have they been generated?");
     process.exit(1);
 }
-processXmlFile(protocolFiles, "src/gen/messages.ts", "src/gen/MPSServerClient.ts");
+processXmlFile(protocolFiles, "src/gen/messages.ts", "src/gen/MPSServerClientGenerated.ts", ["AskLease", "ReleaseLease"]);
