@@ -18,8 +18,8 @@ async function core() {
         process.exit(1);
     });
     const nameA = await clientA.introduceSelf("client-A");
-    const nameB = await clientA.introduceSelf("client-B");
-    const nameC = await clientA.introduceSelf("client-C");
+    const nameB = await clientB.introduceSelf("client-B");
+    const nameC = await clientC.introduceSelf("client-C");
     console.log("assigned names", nameA, nameB, nameC);
     await clientA.askAndKeepLease("model1");
     await clientB.askAndKeepLease("model2");
