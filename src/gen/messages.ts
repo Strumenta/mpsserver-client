@@ -128,54 +128,6 @@ export interface ExecuteIntention {
 }
 
 //
-// messages for group Locking
-//
-
-export interface AskLeaseWithMetadata {
-  model: string
-  requestId: string
-  type: string
-}
-
-export interface AskLease {
-  model: string
-}
-
-export interface AskLeaseAnswerWithMetadata {
-  leaseAcquired: boolean
-  reason: string
-  requestId: string
-  type: string
-}
-
-export interface AskLeaseAnswer {
-  leaseAcquired: boolean
-  reason: string
-}
-
-export interface ReleaseLeaseWithMetadata {
-  model: string
-  requestId: string
-  type: string
-}
-
-export interface ReleaseLease {
-  model: string
-}
-
-export interface DoneAnswerMessageWithMetadata {
-  success: boolean
-  message: string
-  requestId: string
-  type: string
-}
-
-export interface DoneAnswerMessage {
-  success: boolean
-  message: string
-}
-
-//
 // messages for group Make
 //
 
@@ -404,7 +356,6 @@ export interface GetRootsAnswer {
 export interface InstantiateConceptWithMetadata {
   nodeToReplace: NodeReference
   conceptToInstantiate: string
-  requestId: string
   type: string
 }
 
@@ -448,7 +399,6 @@ export interface SetChildWithMetadata {
   containmentName: string
   conceptToInstantiate: string
   smartRefNodeId?: RegularNodeIDInfo
-  requestId: string
   type: string
 }
 
@@ -461,13 +411,10 @@ export interface SetChild {
 
 export interface DeleteNodeWithMetadata {
   node: NodeReference
-  requestId: string
   type: string
 }
 
-export interface DeleteNode {
-  node: NodeReference
-}
+export type DeleteNode = Record<string, unknown>
 
 export interface DefaultInsertionWithMetadata {
   modelName: string
@@ -499,7 +446,6 @@ export interface InsertNextSiblingWithMetadata {
   modelName: string
   sibling: number
   conceptName: string
-  requestId: string
   type: string
 }
 
@@ -602,7 +548,6 @@ export interface ReferenceChangeWithMetadata {
   node: NodeReference
   referenceName: string
   referenceValue: NodeReference
-  requestId: string
   type: string
 }
 
@@ -616,7 +561,6 @@ export interface CreateRootWithMetadata {
   modelName: string
   conceptName: string
   propertiesValues: {[key:string]:PropertyValue}
-  requestId: string
   type: string
 }
 
@@ -663,6 +607,18 @@ export interface MoveChildWithMetadata {
 export interface MoveChild {
   child: NodeReference
   index: number
+}
+
+export interface DoneAnswerMessageWithMetadata {
+  success: boolean
+  message: string
+  requestId: string
+  type: string
+}
+
+export interface DoneAnswerMessage {
+  success: boolean
+  message: string
 }
 
 export interface OverrideNodeWithMetadata {

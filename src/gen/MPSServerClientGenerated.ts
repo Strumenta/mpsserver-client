@@ -1,6 +1,6 @@
 import { BaseWSClient } from "../BaseWSClient";
 import { PropertyValue } from "../base";
-import { AddChild, AddChildAnswerWithMetadata, AnswerAlternativesItem, AnswerAlternativesWithMetadata, AnswerDefaultInsertionWithMetadata, AnswerForDirectReferencesWithMetadata, AnswerForWrappingReferencesWithMetadata, AnswerPropertyChange, AnswerPropertyChangeWithMetadata, AskAlternatives, AskErrorsForNode, AskLease, AskLeaseAnswer, AskLeaseAnswerWithMetadata, CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata, CreateRoot, DefaultInsertion, DeleteIntentionsBlock, DeleteNode, DirAlternative, DoneAnswerMessage, DoneAnswerMessageWithMetadata, ErrorsForModelReport, ErrorsForNodeReport, ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata, ExecuteIntention, GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata, GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata, GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata, GetNode, GetNodeAnswerWithMetadata, GetProjectInfo, GetProjectInfoAnswerWithMetadata, GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata, InsertNextSibling, InstantiateConcept, IntroduceSelf, IntroduceSelfAnswerWithMetadata, MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata, ModelInfo, ModelixCheckoutTransientModule, ModelixCheckoutTransientProject, ModelixCleanTransient, ModelixResetModelServer, MoveChild, NewProject, NodeAdded, NodeIDInfo, NodeInfoDetailed, NodeReference, NodeRemoved, OpenProject, OverrideNode, OverrideNodeInfoDetails, PropertyChange, ReferenceChange, ReferenceChanged, RegisterForChangesListener, RegisterForChangesNotification, RegularNodeIDInfo, ReleaseLease, RequestForDirectReferences, RequestForPropertyChange, RequestForWrappingReferences, SetChild, Status, StatusAnswerWithMetadata, UUID, WraAlternative } from "./messages";
+import { AddChild, AddChildAnswerWithMetadata, AnswerAlternativesItem, AnswerAlternativesWithMetadata, AnswerDefaultInsertionWithMetadata, AnswerForDirectReferencesWithMetadata, AnswerForWrappingReferencesWithMetadata, AnswerPropertyChange, AnswerPropertyChangeWithMetadata, AskAlternatives, AskErrorsForNode, CreateIntentionsBlock, CreateIntentionsBlockAnswer, CreateIntentionsBlockAnswerWithMetadata, CreateRoot, DefaultInsertion, DeleteIntentionsBlock, DeleteNode, DirAlternative, DoneAnswerMessage, DoneAnswerMessageWithMetadata, ErrorsForModelReport, ErrorsForNodeReport, ExecuteAction, ExecuteActionAnswer, ExecuteActionAnswerWithMetadata, ExecuteIntention, GetInstancesOfConcept, GetInstancesOfConceptAnswer, GetInstancesOfConceptAnswerWithMetadata, GetIntentionsBlock, GetIntentionsBlockAnswer, GetIntentionsBlockAnswerWithMetadata, GetModuleInfo, GetModuleInfoAnswerWithMetadata, GetModulesStatus, GetModulesStatusAnswer, GetModulesStatusAnswerWithMetadata, GetNode, GetNodeAnswerWithMetadata, GetProjectInfo, GetProjectInfoAnswerWithMetadata, GetRoots, GetRootsAnswer, GetRootsAnswerWithMetadata, InsertNextSibling, InstantiateConcept, IntroduceSelf, IntroduceSelfAnswerWithMetadata, MakeProject, MakeProjectAnswer, MakeProjectAnswerWithMetadata, ModelInfo, ModelixCheckoutTransientModule, ModelixCheckoutTransientProject, ModelixCleanTransient, ModelixResetModelServer, MoveChild, NewProject, NodeAdded, NodeIDInfo, NodeInfoDetailed, NodeReference, NodeRemoved, OpenProject, OverrideNode, OverrideNodeInfoDetails, PropertyChange, ReferenceChange, ReferenceChanged, RegisterForChangesListener, RegisterForChangesNotification, RegularNodeIDInfo, RequestForDirectReferences, RequestForPropertyChange, RequestForWrappingReferences, SetChild, Status, StatusAnswerWithMetadata, UUID, WraAlternative } from "./messages";
 
 export class MPSServerClientGenerated extends BaseWSClient {
     constructor(url: string) {
@@ -40,20 +40,6 @@ export class MPSServerClientGenerated extends BaseWSClient {
         await this.client.notify('ExecuteIntention', _params);
     }
 
-    protected async askLease(model: string): Promise<AskLeaseAnswer> {
-        await this.connect();
-        const _params : AskLease = {model};
-        const res = await this.client.call('AskLease', _params) as AskLeaseAnswerWithMetadata;
-        return {leaseAcquired: res.leaseAcquired, reason: res.reason} as AskLeaseAnswer;
-    }
-
-    protected async releaseLease(model: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : ReleaseLease = {model};
-        const res = await this.client.call('ReleaseLease', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
     public async makeProject(cleanMake: boolean): Promise<MakeProjectAnswer> {
         await this.connect();
         const _params : MakeProject = {cleanMake};
@@ -82,13 +68,6 @@ export class MPSServerClientGenerated extends BaseWSClient {
         return {modelName: res.modelName, nodes: res.nodes} as GetRootsAnswer;
     }
 
-    public async instantiateConcept(nodeToReplace: NodeReference, conceptToInstantiate: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : InstantiateConcept = {nodeToReplace, conceptToInstantiate};
-        const res = await this.client.call('InstantiateConcept', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
     public async addChild(container: NodeReference, containmentName: string, conceptToInstantiate: string, index: number, smartRefNodeId?: RegularNodeIDInfo, idOfNewNode?: RegularNodeIDInfo): Promise<NodeReference> {
         await this.connect();
         const _params : AddChild = {container, containmentName, conceptToInstantiate, index, smartRefNodeId, idOfNewNode};
@@ -96,32 +75,11 @@ export class MPSServerClientGenerated extends BaseWSClient {
         return res.nodeCreated;
     }
 
-    public async setChild(container: NodeReference, containmentName: string, conceptToInstantiate: string, smartRefNodeId: RegularNodeIDInfo): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : SetChild = {container, containmentName, conceptToInstantiate, smartRefNodeId};
-        const res = await this.client.call('SetChild', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    public async deleteNode(node: NodeReference): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : DeleteNode = {node};
-        const res = await this.client.call('DeleteNode', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
     public async defaultInsertion(modelName: string, container: number, containmentName: string, conceptName: string): Promise<NodeIDInfo> {
         await this.connect();
         const _params : DefaultInsertion = {modelName, container, containmentName, conceptName};
         const res = await this.client.call('DefaultInsertion', _params) as AnswerDefaultInsertionWithMetadata;
         return res.addedNodeID;
-    }
-
-    public async insertNextSibling(modelName: string, sibling: number, conceptName: string): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : InsertNextSibling = {modelName, sibling, conceptName};
-        const res = await this.client.call('InsertNextSibling', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
     }
 
     public async askAlternatives(modelName: string, nodeId: number, containmentName: string): Promise<AnswerAlternativesItem[]> {
@@ -145,20 +103,6 @@ export class MPSServerClientGenerated extends BaseWSClient {
         return res.items;
     }
 
-    public async referenceChange(node: NodeReference, referenceName: string, referenceValue: NodeReference): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : ReferenceChange = {node, referenceName, referenceValue};
-        const res = await this.client.call('ReferenceChange', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
-    public async createRoot(modelName: string, conceptName: string, propertiesValues: {[key:string]:PropertyValue}): Promise<DoneAnswerMessage> {
-        await this.connect();
-        const _params : CreateRoot = {modelName, conceptName, propertiesValues};
-        const res = await this.client.call('CreateRoot', _params) as DoneAnswerMessageWithMetadata;
-        return {success: res.success, message: res.message} as DoneAnswerMessage;
-    }
-
     public async getNode(node: NodeReference): Promise<NodeInfoDetailed> {
         await this.connect();
         const _params : GetNode = {node};
@@ -178,6 +122,42 @@ export class MPSServerClientGenerated extends BaseWSClient {
         const _params : OverrideNode = {modelName, node};
         const res = await this.client.call('OverrideNode', _params) as DoneAnswerMessageWithMetadata;
         return {success: res.success, message: res.message} as DoneAnswerMessage;
+    }
+
+    public async instantiateConcept(nodeToReplace: NodeReference, conceptToInstantiate: string): Promise<void> {
+        await this.connect();
+        const _params : InstantiateConcept = {nodeToReplace, conceptToInstantiate};
+        await this.client.notify('InstantiateConcept', _params);
+    }
+
+    public async setChild(container: NodeReference, containmentName: string, conceptToInstantiate: string, smartRefNodeId: RegularNodeIDInfo): Promise<void> {
+        await this.connect();
+        const _params : SetChild = {container, containmentName, conceptToInstantiate, smartRefNodeId};
+        await this.client.notify('SetChild', _params);
+    }
+
+    public async deleteNode(node: NodeReference): Promise<void> {
+        await this.connect();
+        const _params : DeleteNode = {node};
+        await this.client.notify('DeleteNode', _params);
+    }
+
+    public async insertNextSibling(modelName: string, sibling: number, conceptName: string): Promise<void> {
+        await this.connect();
+        const _params : InsertNextSibling = {modelName, sibling, conceptName};
+        await this.client.notify('InsertNextSibling', _params);
+    }
+
+    public async referenceChange(node: NodeReference, referenceName: string, referenceValue: NodeReference): Promise<void> {
+        await this.connect();
+        const _params : ReferenceChange = {node, referenceName, referenceValue};
+        await this.client.notify('ReferenceChange', _params);
+    }
+
+    public async createRoot(modelName: string, conceptName: string, propertiesValues: {[key:string]:PropertyValue}): Promise<void> {
+        await this.connect();
+        const _params : CreateRoot = {modelName, conceptName, propertiesValues};
+        await this.client.notify('CreateRoot', _params);
     }
 
     public async askErrorsForNode(rootNode: NodeReference): Promise<void> {
