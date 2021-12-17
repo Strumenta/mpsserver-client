@@ -5,10 +5,13 @@ export abstract class BaseWSClient {
     protected client: Client;
     private connected: boolean;
 
+    // this will be overridden by the generated method
+    protected abstract keepAlive() : Promise<void>;
+
     private wsKeepAlive() {
         console.log("keeping alive...", new Date().toLocaleString());
-        this.client.emit("KEEP-ALIVE")
-        setTimeout(() => {this.wsKeepAlive()}, 20000)
+        this.keepAlive();
+        setTimeout(() => {this.wsKeepAlive()}, 9000)
     }
 
     constructor(url: string) {
